@@ -1,0 +1,183 @@
+2026-08-21 15:24:23 [INFO] ============================================================
+2026-08-21 15:24:23 [INFO] Starting training: HybricMamba
+2026-08-21 15:24:23 [INFO] Dataset: German
+2026-08-21 15:24:23 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-21 15:24:23 [INFO] Device: cuda
+2026-08-21 15:24:23 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-21 15:24:23 [INFO] Batch size: 64
+2026-08-21 15:24:23 [INFO] Num epochs: 110
+2026-08-21 15:24:23 [INFO] Learning rate: 0.001
+2026-08-21 15:24:23 [INFO] Weight decay: 0.02
+2026-08-21 15:24:23 [INFO] Clip grad: 5.0
+2026-08-21 15:24:23 [INFO] Label smoothing: 0.0
+2026-08-21 15:24:23 [INFO] ============================================================
+2026-08-21 15:24:23 [INFO] Số nhãn (classes): 43
+2026-08-21 15:24:23 [INFO] Tổng số ảnh: 557516
+2026-08-21 15:24:24 [INFO] Train: 446012 | Test: 111504
+2026-08-21 15:24:24 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-21 15:24:24 [INFO]   Batch 0: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 15:24:24 [INFO]   Batch 1: 26 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 15:24:24 [INFO]   Batch 2: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 15:24:24 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 15:24:24 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 15:24:24 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-08-21 15:26:32 [INFO] Epoch 0 | Acc: 0.8723 | Loss: 2.1971 | Eval Loss: 0.4352 | LR: 0.001000
+2026-08-21 15:26:32 [INFO] ✓ Saved best model: Acc=0.8723 at epoch 0
+2026-08-21 15:29:01 [INFO] Epoch 1 | Acc: 0.9147 | Loss: 1.1505 | Eval Loss: 0.2878 | LR: 0.001000
+2026-08-21 15:29:01 [INFO] ✓ Saved best model: Acc=0.9147 at epoch 1
+2026-08-21 15:31:27 [INFO] Epoch 2 | Acc: 0.9250 | Loss: 0.9376 | Eval Loss: 0.2551 | LR: 0.001000
+2026-08-21 15:31:27 [INFO] ✓ Saved best model: Acc=0.9250 at epoch 2
+2026-08-21 15:33:52 [INFO] Epoch 3 | Acc: 0.9347 | Loss: 0.8349 | Eval Loss: 0.2266 | LR: 0.001000
+2026-08-21 15:33:52 [INFO] ✓ Saved best model: Acc=0.9347 at epoch 3
+2026-08-21 15:36:13 [INFO] Epoch 4 | Acc: 0.9296 | Loss: 0.7797 | Eval Loss: 0.2393 | LR: 0.001000
+2026-08-21 15:38:34 [INFO] Epoch 5 | Acc: 0.9328 | Loss: 0.7367 | Eval Loss: 0.2183 | LR: 0.001000
+2026-08-21 15:40:54 [INFO] Epoch 6 | Acc: 0.9379 | Loss: 0.7106 | Eval Loss: 0.2181 | LR: 0.001000
+2026-08-21 15:40:54 [INFO] ✓ Saved best model: Acc=0.9379 at epoch 6
+2026-08-21 15:43:14 [INFO] Epoch 7 | Acc: 0.9524 | Loss: 0.6871 | Eval Loss: 0.1661 | LR: 0.001000
+2026-08-21 15:43:14 [INFO] ✓ Saved best model: Acc=0.9524 at epoch 7
+2026-08-21 15:45:33 [INFO] Epoch 8 | Acc: 0.9461 | Loss: 0.6691 | Eval Loss: 0.1793 | LR: 0.001000
+2026-08-21 15:47:52 [INFO] Epoch 9 | Acc: 0.9456 | Loss: 0.6550 | Eval Loss: 0.1940 | LR: 0.001000
+2026-08-21 15:50:11 [INFO] Epoch 10 | Acc: 0.9489 | Loss: 0.6410 | Eval Loss: 0.1732 | LR: 0.001000
+2026-08-21 15:52:31 [INFO] Epoch 11 | Acc: 0.9506 | Loss: 0.6301 | Eval Loss: 0.1716 | LR: 0.001000
+2026-08-21 15:54:49 [INFO] Epoch 12 | Acc: 0.9394 | Loss: 0.6191 | Eval Loss: 0.2044 | LR: 0.001000
+2026-08-21 15:57:10 [INFO] Epoch 13 | Acc: 0.9457 | Loss: 0.6124 | Eval Loss: 0.1850 | LR: 0.001000
+2026-08-21 15:59:30 [INFO] Epoch 14 | Acc: 0.9469 | Loss: 0.6072 | Eval Loss: 0.1855 | LR: 0.001000
+2026-08-21 16:01:52 [INFO] Epoch 15 | Acc: 0.9417 | Loss: 0.5998 | Eval Loss: 0.1978 | LR: 0.001000
+2026-08-21 16:04:12 [INFO] Epoch 16 | Acc: 0.9429 | Loss: 0.5942 | Eval Loss: 0.1952 | LR: 0.001000
+2026-08-21 16:06:32 [INFO] Epoch 17 | Acc: 0.9130 | Loss: 0.5908 | Eval Loss: 0.3077 | LR: 0.001000
+2026-08-21 16:08:55 [INFO] Epoch 18 | Acc: 0.8825 | Loss: 0.5867 | Eval Loss: 0.3968 | LR: 0.001000
+2026-08-21 16:11:16 [INFO] Epoch 19 | Acc: 0.9539 | Loss: 0.5763 | Eval Loss: 0.1552 | LR: 0.001000
+2026-08-21 16:11:16 [INFO] ✓ Saved best model: Acc=0.9539 at epoch 19
+2026-08-21 16:13:42 [INFO] Epoch 20 | Acc: 0.9636 | Loss: 0.5156 | Eval Loss: 0.1261 | LR: 0.000500
+2026-08-21 16:13:42 [INFO] ✓ Saved best model: Acc=0.9636 at epoch 20
+2
+2026-08-21 16:33:08 [INFO] ============================================================
+2026-08-21 16:33:08 [INFO] Starting training: HybricMamba
+2026-08-21 16:33:08 [INFO] Dataset: German
+2026-08-21 16:33:08 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-21 16:33:08 [INFO] Device: cuda
+2026-08-21 16:33:08 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-21 16:33:08 [INFO] Batch size: 64
+2026-08-21 16:33:08 [INFO] Num epochs: 110
+2026-08-21 16:33:08 [INFO] Learning rate: 0.001
+2026-08-21 16:33:08 [INFO] Weight decay: 0.02
+2026-08-21 16:33:08 [INFO] Clip grad: 5.0
+2026-08-21 16:33:08 [INFO] Label smoothing: 0.0
+2026-08-21 16:33:08 [INFO] ============================================================
+2026-08-21 16:33:09 [INFO] Số nhãn (classes): 43
+2026-08-21 16:33:09 [INFO] Tổng số ảnh: 557516
+2026-08-21 16:33:09 [INFO] Train: 446012 | Test: 111504
+2026-08-21 16:33:09 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-21 16:33:10 [INFO]   Batch 0: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 16:33:10 [INFO]   Batch 1: 26 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 16:33:10 [INFO]   Batch 2: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 16:33:10 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 16:33:10 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 16:33:10 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-08-21 16:33:10 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HybricMamba/German/HybricMamba_best.pth
+2026-08-21 16:33:10 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
+2026-08-21 16:33:10 [INFO] --> Epoch tiếp theo: 21
+2026-08-21 16:33:10 [INFO] --> Best Accuracy: 0.9636
+2026-08-21 16:33:10 [INFO] 
+[SANITY CHECK] Mẫu thử ngay sau khi nạp Weights:
+2026-08-21 16:33:10 [INFO] --> Batch Loss: 0.0569 | Batch Accuracy: 98.44%
+2026-08-21 16:33:10 [INFO] ✅ CHECKPOINT HỢP LỆ! Bắt đầu Fine-tune...
+2026-08-21 16:35:17 [INFO] Epoch 21 | Acc: 0.9711 | Loss: 0.4612 | Eval Loss: 0.1000 | LR: 0.000100
+2026-08-21 16:35:17 [INFO] ✓ Saved best model: Acc=0.9711 at epoch 21
+2026-08-21 16:37:34 [INFO] Epoch 22 | Acc: 0.9716 | Loss: 0.4497 | Eval Loss: 0.0976 | LR: 0.000100
+2026-08-21 16:37:34 [INFO] ✓ Saved best model: Acc=0.9716 at epoch 22
+2026-08-21 16:40:04 [INFO] Epoch 23 | Acc: 0.9715 | Loss: 0.4468 | Eval Loss: 0.0969 | LR: 0.000100
+2026-08-21 16:42:21 [INFO] Epoch 24 | Acc: 0.9715 | Loss: 0.4446 | Eval Loss: 0.0976 | LR: 0.000100
+2026-08-21 16:44:38 [INFO] Epoch 25 | Acc: 0.9725 | Loss: 0.4428 | Eval Loss: 0.0954 | LR: 0.000100
+2026-08-21 16:44:38 [INFO] ✓ Saved best model: Acc=0.9725 at epoch 25
+2026-08-21 16:47:04 [INFO] Epoch 26 | Acc: 0.9721 | Loss: 0.4398 | Eval Loss: 0.0955 | LR: 0.000100
+2026-08-21 16:49:29 [INFO] Epoch 27 | Acc: 0.9729 | Loss: 0.4401 | Eval Loss: 0.0937 | LR: 0.000100
+2026-08-21 16:49:29 [INFO] ✓ Saved best model: Acc=0.9729 at epoch 27
+2026-08-21 16:49:57 [INFO] ============================================================
+2026-08-21 16:49:57 [INFO] Starting training: HybricMamba
+2026-08-21 16:49:57 [INFO] Dataset: German
+2026-08-21 16:49:57 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-21 16:49:57 [INFO] Device: cuda
+2026-08-21 16:49:57 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-21 16:49:57 [INFO] Batch size: 64
+2026-08-21 16:49:57 [INFO] Num epochs: 110
+2026-08-21 16:49:57 [INFO] Learning rate: 0.001
+2026-08-21 16:49:57 [INFO] Weight decay: 0.02
+2026-08-21 16:49:57 [INFO] Clip grad: 5.0
+2026-08-21 16:49:57 [INFO] Label smoothing: 0.0
+2026-08-21 16:49:57 [INFO] ============================================================
+2026-08-21 16:49:58 [INFO] Số nhãn (classes): 43
+2026-08-21 16:49:58 [INFO] Tổng số ảnh: 557516
+2026-08-21 16:49:58 [INFO] Train: 446012 | Test: 111504
+2026-08-21 16:49:58 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-21 16:49:59 [INFO]   Batch 0: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 16:49:59 [INFO]   Batch 1: 26 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 16:49:59 [INFO]   Batch 2: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 16:49:59 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 16:49:59 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 16:49:59 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-08-21 16:49:59 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HybricMamba/German/HybricMamba_best.pth
+2026-08-21 16:49:59 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
+2026-08-21 16:49:59 [INFO] --> Epoch tiếp theo: 28
+2026-08-21 16:49:59 [INFO] --> Best Accuracy: 0.9729
+2026-08-21 16:49:59 [INFO] 
+[SANITY CHECK] Mẫu thử ngay sau khi nạp Weights:
+2026-08-21 16:49:59 [INFO] --> Batch Loss: 0.0268 | Batch Accuracy: 98.44%
+2026-08-21 16:49:59 [INFO] ✅ CHECKPOINT HỢP LỆ! Bắt đầu Fine-tune...
+2026-08-21 16:52:08 [INFO] Epoch 28 | Acc: 0.9736 | Loss: 0.4308 | Eval Loss: 0.0900 | LR: 0.000050
+2026-08-21 16:52:09 [INFO] ✓ Saved best model: Acc=0.9736 at epoch 28
+2026-08-21 16:54:32 [INFO] Epoch 29 | Acc: 0.9740 | Loss: 0.4259 | Eval Loss: 0.0891 | LR: 0.000050
+2026-08-21 16:54:32 [INFO] ✓ Saved best model: Acc=0.9740 at epoch 29
+2026-08-21 16:57:07 [INFO] Epoch 30 | Acc: 0.9741 | Loss: 0.4209 | Eval Loss: 0.0893 | LR: 0.000010
+2026-08-21 16:57:07 [INFO] ✓ Saved best model: Acc=0.9741 at epoch 30
+2026-08-21 16:59:22 [INFO] Epoch 31 | Acc: 0.9741 | Loss: 0.4196 | Eval Loss: 0.0886 | LR: 0.000010
+2026-08-21 17:01:36 [INFO] Epoch 32 | Acc: 0.9745 | Loss: 0.4193 | Eval Loss: 0.0872 | LR: 0.000010
+2026-08-21 17:01:36 [INFO] ✓ Saved best model: Acc=0.9745 at epoch 32
+2026-08-21 17:03:49 [INFO] Epoch 33 | Acc: 0.9740 | Loss: 0.4168 | Eval Loss: 0.0887 | LR: 0.000010
+2026-08-21 17:06:02 [INFO] Epoch 34 | Acc: 0.9743 | Loss: 0.4175 | Eval Loss: 0.0877 | LR: 0.000010
+2026-08-21 17:08:16 [INFO] Epoch 35 | Acc: 0.9742 | Loss: 0.4238 | Eval Loss: 0.0880 | LR: 0.000005
+2026-08-21 17:10:36 [INFO] Epoch 36 | Acc: 0.9743 | Loss: 0.4211 | Eval Loss: 0.0882 | LR: 0.000005
+2026-08-21 17:40:09 [INFO] ============================================================
+2026-08-21 17:40:09 [INFO] Starting training: HybricMamba
+2026-08-21 17:40:09 [INFO] Dataset: German
+2026-08-21 17:40:09 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-21 17:40:09 [INFO] Device: cuda
+2026-08-21 17:40:09 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-21 17:40:09 [INFO] Batch size: 64
+2026-08-21 17:40:09 [INFO] Num epochs: 110
+2026-08-21 17:40:09 [INFO] Learning rate: 0.001
+2026-08-21 17:40:09 [INFO] Weight decay: 0.02
+2026-08-21 17:40:09 [INFO] Clip grad: 5.0
+2026-08-21 17:40:09 [INFO] Label smoothing: 0.0
+2026-08-21 17:40:09 [INFO] ============================================================
+2026-08-21 17:40:09 [INFO] Số nhãn (classes): 43
+2026-08-21 17:40:09 [INFO] Tổng số ảnh: 557516
+2026-08-21 17:40:10 [INFO] Train: 446012 | Test: 111504
+2026-08-21 17:40:10 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-21 17:40:10 [INFO]   Batch 0: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 17:40:10 [INFO]   Batch 1: 26 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 17:40:10 [INFO]   Batch 2: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 17:40:10 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 17:40:10 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 17:40:10 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-08-21 17:40:10 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HybricMamba/German/HybricMamba_best.pth
+2026-08-21 17:40:10 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
+2026-08-21 17:40:10 [INFO] --> Epoch tiếp theo: 33
+2026-08-21 17:40:10 [INFO] --> Best Accuracy: 0.9745
+2026-08-21 17:40:11 [INFO] 
+[SANITY CHECK] Mẫu thử ngay sau khi nạp Weights:
+2026-08-21 17:40:11 [INFO] --> Batch Loss: 0.0154 | Batch Accuracy: 100.00%
+2026-08-21 17:40:11 [INFO] ✅ CHECKPOINT HỢP LỆ! Bắt đầu Fine-tune...
+2026-08-21 17:42:17 [INFO] Epoch 33 | Acc: 0.9745 | Loss: 0.3837 | Eval Loss: 0.0870 | LR: 0.000001
+2026-08-21 17:44:35 [INFO] Epoch 34 | Acc: 0.9746 | Loss: 0.3810 | Eval Loss: 0.0869 | LR: 0.000001
+2026-08-21 17:44:35 [INFO] ✓ Saved best model: Acc=0.9746 at epoch 34
+2026-08-21 17:46:52 [INFO] Epoch 35 | Acc: 0.9744 | Loss: 0.3833 | Eval Loss: 0.0876 | LR: 0.000000
+2026-08-21 17:49:08 [INFO] Epoch 36 | Acc: 0.9743 | Loss: 0.3835 | Eval Loss: 0.0874 | LR: 0.000000
+2026-08-21 17:51:24 [INFO] Epoch 37 | Acc: 0.9745 | Loss: 0.3828 | Eval Loss: 0.0863 | LR: 0.000000

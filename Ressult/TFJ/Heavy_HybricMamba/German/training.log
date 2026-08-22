@@ -1,0 +1,104 @@
+2026-08-21 20:46:39 [INFO] ============================================================
+2026-08-21 20:46:39 [INFO] Starting training: Heavy_HybricMamba
+2026-08-21 20:46:39 [INFO] Dataset: German
+2026-08-21 20:46:39 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-21 20:46:39 [INFO] Device: cuda
+2026-08-21 20:46:39 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-21 20:46:39 [INFO] Batch size: 64
+2026-08-21 20:46:39 [INFO] Num epochs: 110
+2026-08-21 20:46:39 [INFO] Learning rate: 0.001
+2026-08-21 20:46:39 [INFO] Weight decay: 0.02
+2026-08-21 20:46:39 [INFO] Clip grad: 5.0
+2026-08-21 20:46:39 [INFO] Label smoothing: 0.0
+2026-08-21 20:46:39 [INFO] ============================================================
+2026-08-21 20:46:40 [INFO] Số nhãn (classes): 43
+2026-08-21 20:46:40 [INFO] Tổng số ảnh: 557516
+2026-08-21 20:46:40 [INFO] Train: 446012 | Test: 111504
+2026-08-21 20:46:40 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-21 20:46:41 [INFO]   Batch 0: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 20:46:41 [INFO]   Batch 1: 26 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 20:46:41 [INFO]   Batch 2: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 20:46:41 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-21 20:46:41 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-21 20:46:41 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-08-21 20:52:35 [INFO] Epoch 0 | Acc: 0.9482 | Loss: 1.1043 | Eval Loss: 0.1783 | LR: 0.001000
+2026-08-21 20:52:35 [INFO] ✓ Saved best model: Acc=0.9482 at epoch 0
+2026-08-21 20:58:34 [INFO] Epoch 1 | Acc: 0.9619 | Loss: 0.4744 | Eval Loss: 0.1323 | LR: 0.001000
+2026-08-21 20:58:34 [INFO] ✓ Saved best model: Acc=0.9619 at epoch 1
+2026-08-21 21:04:32 [INFO] Epoch 2 | Acc: 0.9664 | Loss: 0.3947 | Eval Loss: 0.1135 | LR: 0.001000
+2026-08-21 21:04:32 [INFO] ✓ Saved best model: Acc=0.9664 at epoch 2
+2026-08-21 21:10:29 [INFO] Epoch 3 | Acc: 0.9691 | Loss: 0.3547 | Eval Loss: 0.1067 | LR: 0.001000
+2026-08-21 21:10:29 [INFO] ✓ Saved best model: Acc=0.9691 at epoch 3
+2026-08-21 21:16:26 [INFO] Epoch 4 | Acc: 0.9799 | Loss: 0.2581 | Eval Loss: 0.0673 | LR: 0.000100
+2026-08-21 21:16:27 [INFO] ✓ Saved best model: Acc=0.9799 at epoch 4
+2026-08-21 21:22:25 [INFO] Epoch 5 | Acc: 0.9806 | Loss: 0.2394 | Eval Loss: 0.0646 | LR: 0.000100
+2026-08-21 21:22:25 [INFO] ✓ Saved best model: Acc=0.9806 at epoch 5
+2026-08-21 21:28:22 [INFO] Epoch 6 | Acc: 0.9816 | Loss: 0.2314 | Eval Loss: 0.0631 | LR: 0.000100
+2026-08-21 21:28:22 [INFO] ✓ Saved best model: Acc=0.9816 at epoch 6
+2026-08-21 21:34:18 [INFO] Epoch 7 | Acc: 0.9819 | Loss: 0.2262 | Eval Loss: 0.0619 | LR: 0.000100
+2026-08-21 21:34:18 [INFO] ✓ Saved best model: Acc=0.9819 at epoch 7
+2026-08-21 21:40:15 [INFO] Epoch 8 | Acc: 0.9831 | Loss: 0.2215 | Eval Loss: 0.0579 | LR: 0.000100
+2026-08-21 21:40:15 [INFO] ✓ Saved best model: Acc=0.9831 at epoch 8
+2026-08-21 21:46:12 [INFO] Epoch 9 | Acc: 0.9834 | Loss: 0.2173 | Eval Loss: 0.0561 | LR: 0.000100
+2026-08-21 21:46:12 [INFO] ✓ Saved best model: Acc=0.9834 at epoch 9
+2026-08-21 21:52:10 [INFO] Epoch 10 | Acc: 0.9838 | Loss: 0.2084 | Eval Loss: 0.0538 | LR: 0.000010
+2026-08-21 21:52:10 [INFO] ✓ Saved best model: Acc=0.9838 at epoch 10
+2026-08-21 21:58:09 [INFO] Epoch 11 | Acc: 0.9842 | Loss: 0.2064 | Eval Loss: 0.0531 | LR: 0.000010
+2026-08-21 21:58:09 [INFO] ✓ Saved best model: Acc=0.9842 at epoch 11
+2026-08-21 22:04:06 [INFO] Epoch 12 | Acc: 0.9841 | Loss: 0.2045 | Eval Loss: 0.0524 | LR: 0.000010
+2026-08-21 22:10:04 [INFO] Epoch 13 | Acc: 0.9844 | Loss: 0.2057 | Eval Loss: 0.0519 | LR: 0.000010
+2026-08-21 22:10:04 [INFO] ✓ Saved best model: Acc=0.9844 at epoch 13
+2026-08-21 22:16:04 [INFO] Epoch 14 | Acc: 0.9844 | Loss: 0.2041 | Eval Loss: 0.0518 | LR: 0.000010
+2026-08-21 22:16:04 [INFO] ✓ Saved best model: Acc=0.9844 at epoch 14
+2026-08-22 06:18:16 [INFO] ============================================================
+2026-08-22 06:18:16 [INFO] Starting training: Heavy_HybricMamba
+2026-08-22 06:18:16 [INFO] Dataset: German
+2026-08-22 06:18:16 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-22 06:18:16 [INFO] Device: cuda
+2026-08-22 06:18:16 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-22 06:18:16 [INFO] Batch size: 64
+2026-08-22 06:18:16 [INFO] Num epochs: 110
+2026-08-22 06:18:16 [INFO] Learning rate: 0.001
+2026-08-22 06:18:16 [INFO] Weight decay: 0.02
+2026-08-22 06:18:16 [INFO] Clip grad: 5.0
+2026-08-22 06:18:16 [INFO] Label smoothing: 0.0
+2026-08-22 06:18:16 [INFO] ============================================================
+2026-08-22 06:18:17 [INFO] Số nhãn (classes): 43
+2026-08-22 06:18:17 [INFO] Tổng số ảnh: 557487
+2026-08-22 06:18:17 [INFO] Train: 445989 | Test: 111498
+2026-08-22 06:18:17 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-22 06:18:17 [INFO]   Batch 0: 25 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 06:18:17 [INFO]   Batch 1: 32 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-22 06:18:17 [INFO]   Batch 2: 27 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 06:18:17 [INFO]   Batch 3: 31 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 06:18:17 [INFO]   Batch 4: 30 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 06:18:18 [INFO] ✅ Shuffle tốt! Trung bình 29.0 classes/batch
+2026-08-22 06:18:18 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/Heavy_HybricMamba/German/Heavy_HybricMamba_best.pth
+2026-08-22 06:18:18 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
+2026-08-22 06:18:18 [INFO] --> Epoch tiếp theo: 15
+2026-08-22 06:18:18 [INFO] --> Best Accuracy: 0.9844
+2026-08-22 06:18:18 [INFO] 
+[SANITY CHECK] Mẫu thử ngay sau khi nạp Weights:
+2026-08-22 06:18:18 [INFO] --> Batch Loss: 0.0332 | Batch Accuracy: 98.44%
+2026-08-22 06:18:18 [INFO] ✅ CHECKPOINT HỢP LỆ! Bắt đầu Fine-tune...
+2026-08-22 06:24:14 [INFO] Epoch 15 | Acc: 0.9852 | Loss: 0.2035 | Eval Loss: 0.0505 | LR: 0.000010
+2026-08-22 06:24:14 [INFO] ✓ Saved best model: Acc=0.9852 at epoch 15
+2026-08-22 06:30:22 [INFO] Epoch 16 | Acc: 0.9851 | Loss: 0.2018 | Eval Loss: 0.0502 | LR: 0.000010
+2026-08-22 06:36:30 [INFO] Epoch 17 | Acc: 0.9851 | Loss: 0.2016 | Eval Loss: 0.0503 | LR: 0.000010
+2026-08-22 06:42:39 [INFO] Epoch 18 | Acc: 0.9852 | Loss: 0.2021 | Eval Loss: 0.0506 | LR: 0.000010
+2026-08-22 06:42:39 [INFO] ✓ Saved best model: Acc=0.9852 at epoch 18
+2026-08-22 06:48:49 [INFO] Epoch 19 | Acc: 0.9851 | Loss: 0.2013 | Eval Loss: 0.0503 | LR: 0.000010
+2026-08-22 06:54:58 [INFO] Epoch 20 | Acc: 0.9852 | Loss: 0.1999 | Eval Loss: 0.0499 | LR: 0.000001
+2026-08-22 06:54:58 [INFO] ✓ Saved best model: Acc=0.9852 at epoch 20
+2026-08-22 07:01:09 [INFO] Epoch 21 | Acc: 0.9853 | Loss: 0.2005 | Eval Loss: 0.0497 | LR: 0.000001
+2026-08-22 07:01:09 [INFO] ✓ Saved best model: Acc=0.9853 at epoch 21
+2026-08-22 07:07:20 [INFO] Epoch 22 | Acc: 0.9854 | Loss: 0.2010 | Eval Loss: 0.0497 | LR: 0.000001
+2026-08-22 07:07:20 [INFO] ✓ Saved best model: Acc=0.9854 at epoch 22
+2026-08-22 07:13:30 [INFO] Epoch 23 | Acc: 0.9855 | Loss: 0.1997 | Eval Loss: 0.0497 | LR: 0.000001
+2026-08-22 07:13:30 [INFO] ✓ Saved best model: Acc=0.9855 at epoch 23
+2026-08-22 07:19:38 [INFO] Epoch 24 | Acc: 0.9854 | Loss: 0.2002 | Eval Loss: 0.0495 | LR: 0.000001
+2026-08-22 07:25:44 [INFO] Epoch 25 | Acc: 0.9855 | Loss: 0.1990 | Eval Loss: 0.0497 | LR: 0.000000
+2026-08-22 07:32:28 [INFO] Epoch 26 | Acc: 0.9855 | Loss: 0.2000 | Eval Loss: 0.0496 | LR: 0.000000

@@ -1,0 +1,68 @@
+2026-08-22 09:22:51 [INFO] ============================================================
+2026-08-22 09:22:51 [INFO] Starting training: Super_Mamba_dim_3
+2026-08-22 09:22:51 [INFO] Dataset: German
+2026-08-22 09:22:51 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-22 09:22:51 [INFO] Device: cuda
+2026-08-22 09:22:51 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-22 09:22:51 [INFO] Batch size: 64
+2026-08-22 09:22:51 [INFO] Num epochs: 110
+2026-08-22 09:22:51 [INFO] Learning rate: 0.001
+2026-08-22 09:22:51 [INFO] Weight decay: 0.02
+2026-08-22 09:22:51 [INFO] Clip grad: 5.0
+2026-08-22 09:22:51 [INFO] Label smoothing: 0.0
+2026-08-22 09:22:51 [INFO] ============================================================
+2026-08-22 09:22:52 [INFO] Số nhãn (classes): 43
+2026-08-22 09:22:52 [INFO] Tổng số ảnh: 557487
+2026-08-22 09:22:52 [INFO] Train: 445989 | Test: 111498
+2026-08-22 09:22:52 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-22 09:22:52 [INFO]   Batch 0: 25 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 09:22:52 [INFO]   Batch 1: 32 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-22 09:22:52 [INFO]   Batch 2: 27 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 09:22:52 [INFO]   Batch 3: 31 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 09:22:52 [INFO]   Batch 4: 30 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-22 09:22:52 [INFO] ✅ Shuffle tốt! Trung bình 29.0 classes/batch
+2026-08-22 09:26:08 [INFO] Epoch 0 | Acc: 0.8890 | Loss: 1.2273 | Eval Loss: 0.3718 | LR: 0.001000
+2026-08-22 09:26:08 [INFO] ✓ Saved best model: Acc=0.8890 at epoch 0
+2026-08-22 09:29:28 [INFO] Epoch 1 | Acc: 0.9299 | Loss: 0.4229 | Eval Loss: 0.2369 | LR: 0.001000
+2026-08-22 09:29:28 [INFO] ✓ Saved best model: Acc=0.9299 at epoch 1
+2026-08-22 09:32:49 [INFO] Epoch 2 | Acc: 0.9411 | Loss: 0.3188 | Eval Loss: 0.2029 | LR: 0.001000
+2026-08-22 09:32:49 [INFO] ✓ Saved best model: Acc=0.9411 at epoch 2
+2026-08-22 09:36:11 [INFO] Epoch 3 | Acc: 0.9423 | Loss: 0.2775 | Eval Loss: 0.2041 | LR: 0.001000
+2026-08-22 09:36:11 [INFO] ✓ Saved best model: Acc=0.9423 at epoch 3
+2026-08-22 09:39:34 [INFO] Epoch 4 | Acc: 0.9500 | Loss: 0.2551 | Eval Loss: 0.1740 | LR: 0.001000
+2026-08-22 09:39:34 [INFO] ✓ Saved best model: Acc=0.9500 at epoch 4
+2026-08-22 09:42:56 [INFO] Epoch 5 | Acc: 0.9534 | Loss: 0.2425 | Eval Loss: 0.1613 | LR: 0.001000
+2026-08-22 09:42:56 [INFO] ✓ Saved best model: Acc=0.9534 at epoch 5
+2026-08-22 09:46:20 [INFO] Epoch 6 | Acc: 0.9487 | Loss: 0.2292 | Eval Loss: 0.1780 | LR: 0.001000
+2026-08-22 09:49:43 [INFO] Epoch 7 | Acc: 0.9555 | Loss: 0.2213 | Eval Loss: 0.1539 | LR: 0.001000
+2026-08-22 09:49:43 [INFO] ✓ Saved best model: Acc=0.9555 at epoch 7
+2026-08-22 09:53:07 [INFO] Epoch 8 | Acc: 0.9400 | Loss: 0.2158 | Eval Loss: 0.2071 | LR: 0.001000
+2026-08-22 09:56:31 [INFO] Epoch 9 | Acc: 0.9525 | Loss: 0.2122 | Eval Loss: 0.1600 | LR: 0.001000
+2026-08-22 09:59:55 [INFO] Epoch 10 | Acc: 0.9766 | Loss: 0.1538 | Eval Loss: 0.0803 | LR: 0.000100
+2026-08-22 09:59:55 [INFO] ✓ Saved best model: Acc=0.9766 at epoch 10
+2026-08-22 10:03:19 [INFO] Epoch 11 | Acc: 0.9772 | Loss: 0.1437 | Eval Loss: 0.0782 | LR: 0.000100
+2026-08-22 10:03:19 [INFO] ✓ Saved best model: Acc=0.9772 at epoch 11
+2026-08-22 10:06:43 [INFO] Epoch 12 | Acc: 0.9782 | Loss: 0.1391 | Eval Loss: 0.0739 | LR: 0.000100
+2026-08-22 10:06:43 [INFO] ✓ Saved best model: Acc=0.9782 at epoch 12
+2026-08-22 10:10:07 [INFO] Epoch 13 | Acc: 0.9786 | Loss: 0.1368 | Eval Loss: 0.0728 | LR: 0.000100
+2026-08-22 10:10:08 [INFO] ✓ Saved best model: Acc=0.9786 at epoch 13
+2026-08-22 10:13:31 [INFO] Epoch 14 | Acc: 0.9789 | Loss: 0.1350 | Eval Loss: 0.0720 | LR: 0.000100
+2026-08-22 10:13:31 [INFO] ✓ Saved best model: Acc=0.9789 at epoch 14
+2026-08-22 10:16:56 [INFO] Epoch 15 | Acc: 0.9801 | Loss: 0.1289 | Eval Loss: 0.0683 | LR: 0.000010
+2026-08-22 10:16:56 [INFO] ✓ Saved best model: Acc=0.9801 at epoch 15
+2026-08-22 10:20:20 [INFO] Epoch 16 | Acc: 0.9801 | Loss: 0.1276 | Eval Loss: 0.0677 | LR: 0.000010
+2026-08-22 10:23:45 [INFO] Epoch 17 | Acc: 0.9803 | Loss: 0.1279 | Eval Loss: 0.0669 | LR: 0.000010
+2026-08-22 10:23:45 [INFO] ✓ Saved best model: Acc=0.9803 at epoch 17
+2026-08-22 10:27:09 [INFO] Epoch 18 | Acc: 0.9802 | Loss: 0.1256 | Eval Loss: 0.0675 | LR: 0.000001
+2026-08-22 10:30:34 [INFO] Epoch 19 | Acc: 0.9804 | Loss: 0.1263 | Eval Loss: 0.0671 | LR: 0.000001
+2026-08-22 10:30:34 [INFO] ✓ Saved best model: Acc=0.9804 at epoch 19
+2026-08-22 10:33:58 [INFO] Epoch 20 | Acc: 0.9805 | Loss: 0.1266 | Eval Loss: 0.0669 | LR: 0.000001
+2026-08-22 10:33:58 [INFO] ✓ Saved best model: Acc=0.9805 at epoch 20
+2026-08-22 10:37:22 [INFO] Epoch 21 | Acc: 0.9803 | Loss: 0.1261 | Eval Loss: 0.0669 | LR: 0.000001
+2026-08-22 10:40:45 [INFO] Epoch 22 | Acc: 0.9806 | Loss: 0.1258 | Eval Loss: 0.0665 | LR: 0.000001
+2026-08-22 10:40:45 [INFO] ✓ Saved best model: Acc=0.9806 at epoch 22
+2026-08-22 10:44:11 [INFO] Epoch 23 | Acc: 0.9805 | Loss: 0.1250 | Eval Loss: 0.0667 | LR: 0.000000
+2026-08-22 10:47:35 [INFO] Epoch 24 | Acc: 0.9803 | Loss: 0.1260 | Eval Loss: 0.0669 | LR: 0.000000
+2026-08-22 10:51:00 [INFO] Epoch 25 | Acc: 0.9806 | Loss: 0.1266 | Eval Loss: 0.0667 | LR: 0.000000
+2026-08-22 10:54:25 [INFO] Epoch 26 | Acc: 0.9804 | Loss: 0.1259 | Eval Loss: 0.0667 | LR: 0.000000
