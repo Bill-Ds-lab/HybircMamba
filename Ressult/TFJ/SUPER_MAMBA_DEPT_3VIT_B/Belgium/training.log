@@ -1,0 +1,10 @@
+2026-08-24 23:09:16 [INFO] Dataset: Belgium | Số nhãn (classes): 62 | Tổng số ảnh: 7095
+2026-08-24 23:09:16 [INFO] Dữ liệu đã chia -> Train (70%): 4966 | Val (15%): 1064 | Test (15%): 1065
+2026-08-24 23:09:16 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-24 23:09:18 [INFO]   Batch 0: 32 classes (first 5: [1, 2, 7, 12, 13])
+2026-08-24 23:09:18 [INFO]   Batch 1: 29 classes (first 5: [0, 1, 7, 8, 9])
+2026-08-24 23:09:18 [INFO]   Batch 2: 29 classes (first 5: [0, 1, 3, 6, 7])
+2026-08-24 23:09:18 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 6, 7, 13])
+2026-08-24 23:09:18 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 5, 6, 7])
+2026-08-24 23:09:18 [INFO] ✅ Shuffle tốt! Trung bình 29.0 classes/batch

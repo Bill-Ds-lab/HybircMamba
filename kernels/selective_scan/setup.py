@@ -59,7 +59,6 @@ def get_ext():
         if bare_metal_version < Version("11.2"):
             multi_threads = False
             
-    cc_flag.extend(["-gencode", "arch=compute_70,code=sm_70"])
     cc_flag.extend(["-gencode", "arch=compute_80,code=sm_80"])
     if gencode_sm90:
         cc_flag.extend(["-gencode", "arch=compute_90,code=sm_90"])

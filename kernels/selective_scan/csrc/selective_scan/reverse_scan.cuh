@@ -6,12 +6,25 @@
 
 #include <cub/config.cuh>
 
+__device__ __forceinline__ unsigned int LaneIdCompat() {
+    unsigned int ret;
+    asm volatile ("mov.u32 %0, %%laneid;" : "=r"(ret));
+    return ret;
+}
+
+
 #include <cub/util_ptx.cuh>
+
 #include <cub/util_type.cuh>
+
 #include <cub/block/block_raking_layout.cuh>
+
 // #include <cub/detail/uninitialized_copy.cuh>
+
 #include "uninitialized_copy.cuh"
+
 #include "cub_extra.cuh"
+
 
 /**
  * Perform a reverse sequential reduction over \p LENGTH elements of the \p input array.  The aggregate is returned.
@@ -116,7 +129,7 @@ struct WarpReverseScan {
     /// Constructor
     explicit __device__ __forceinline__
     WarpReverseScan()
-        : lane_id(cub::LaneId())
+        : lane_id(LaneIdCompat())
         , warp_id(IS_ARCH_WARP ? 0 : (lane_id / LOGICAL_WARP_THREADS))
         // , member_mask(cub::WarpMask<LOGICAL_WARP_THREADS>(warp_id))
         , member_mask(WarpMask<LOGICAL_WARP_THREADS>(warp_id))
@@ -320,7 +333,7 @@ struct BlockReverseScan {
             // Place thread partial into shared memory raking grid
             T *placement_ptr = BlockRakingLayout::PlacementPtr(temp_storage.raking_grid, linear_tid);
             detail::uninitialized_copy(placement_ptr, input);
-            cub::CTA_SYNC();
+            __syncthreads();
             // Reduce parallelism down to just raking threads
             if (linear_tid < RAKING_THREADS) {
                 WarpReverseScan warp_scan;
@@ -338,7 +351,7 @@ struct BlockReverseScan {
                 // Exclusive raking downsweep scan
                 ExclusiveDownsweep(scan_op, downsweep_postfix);
             }
-            cub::CTA_SYNC();
+            __syncthreads();
             // Grab thread postfix from shared memory
             exclusive_output = *placement_ptr;
 
@@ -370,7 +383,7 @@ struct BlockReverseScan {
             //     }
             // }
 
-            // cub::CTA_SYNC();
+            // __syncthreads();
 
             // // Incorporate thread block postfix into outputs
             // T block_postfix = temp_storage.block_postfix;

@@ -4,9 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from models.CNN_Mamba_CNN_Mamba_Enhanced.CNN_Mamba_CNN_Mamba_EnhancedV4 import HybricMamba
-from models.CNN_Mamba_CNN_Mamba_Enhanced.CNN_Mamba_CNN_Mamba_EnhancedV4_v2 import CNN_Mamba_CNN_Mamba_EnhancedV4_v2
-from models.CNN_Mamba_CNN_Mamba_Enhanced.Cnn_Mamba_Cnn_Mamba_Enhanced_v3 import CNN_Mamba_CNN_Mamba_EnhancedV3
+from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
 
 
@@ -404,83 +402,80 @@ def full_report(model: nn.Module, model_name: str = "Model",
 
 
 if __name__ == "__main__":
+    device = auto_device()
+    print("=" * 80)
+    print(f"BẮT ĐẦU BENCHMARK TRÊN DEVICE: {device}")
+    print("=" * 80)
 
-    # for name, m in {"model1": model1, "model2": model2}.items():
-    #     results[name] = full_report(m, model_name=name)
+    models_dict = {
+        "Light_HybricMamba": (
+            HybricMamba(
+                dims=(3, 16, 32, 56, 96),
+                num_classes=43,
+                mbconv_expand_ratio=4,
+                ssm_d_state=8,
+                mamba_blocks=(1, 1),
+                ssm_frac=0.5,
+                conv_frac=0.3,
+                use_aux=True,
+            ),
+            97.46,
+        ),
+        "Medium_HybricMamba": (
+            HybricMamba(
+                dims=(3, 24, 48, 80, 128),
+                num_classes=43,
+                mbconv_expand_ratio=4,
+                ssm_d_state=12,
+                ssm_ratio=1.5,
+                mamba_blocks=(2, 2),
+                cnn_blocks=(1, 2),
+                ssm_frac=0.6,
+                conv_frac=0.25,
+                use_aux=True,
+            ),
+            97.86,
+        ),
+        "Heavy_HybricMamba": (
+            HybricMamba(
+                dims=(3, 32, 64, 112, 176),
+                num_classes=43,
+                mbconv_expand_ratio=6,
+                ssm_d_state=16,
+                ssm_ratio=2.0,
+                mamba_blocks=(2, 3),
+                cnn_blocks=(2, 2),
+                ssm_frac=0.7,
+                conv_frac=0.2,
+                use_aux=True,
+            ),
+            98.55,
+        ),
+        "SuperMamba_dim3": (Super_Mamba(dims=3, depth=3, num_classes=43), 98.06),
+        "SuperMamba_dim4": (Super_Mamba(dims=3, depth=4, num_classes=43), 98.43),
+    }
 
-    print("==================================================================================================")
-    model = Super_Mamba(dims=3, depth=4, num_classes=43)
+    final_results = {}
 
+    for name, (model, acc) in models_dict.items():
+        full_report(model, model_name=name, accuracy=acc, device=device)
 
+        latencies = []
+        for _ in range(10):
+            t_info = measure_inference_time(model, device=device, n_warmup=50, n_runs=400)
+            latencies.append(t_info["median_ms"])
+            time.sleep(1)
 
-    Light_HybricMamba =HybricMamba(
-        dims=(3, 16, 32, 56, 96),
-        num_classes=43,
-        mbconv_expand_ratio=4,
-        ssm_d_state=8,
-        mamba_blocks=(1, 1),
-        ssm_frac=0.5,
-        conv_frac=0.3,
-        use_aux=True,
-    )
+        final_results[name] = latencies
 
-    Medium_HybricMamba = HybricMamba(
-        dims=(3, 24, 48, 80, 128),
-        num_classes=43,
-        mbconv_expand_ratio=4,
-        ssm_d_state=12,
-        ssm_ratio=1.5,
-        mamba_blocks=(2, 2),
-        cnn_blocks=(1, 2),
-        ssm_frac=0.6,
-        conv_frac=0.25,
-        use_aux=True,
-    )
+        time.sleep(10)
 
-    Heavy_HybricMamba = HybricMamba(
-    dims=(3, 32, 64, 112, 176),
-    num_classes=43,
-    mbconv_expand_ratio=6,
-    ssm_d_state=16,
-    ssm_ratio=2.0,
-    mamba_blocks=(2, 3),
-    cnn_blocks=(2, 2),
-    ssm_frac=0.7,
-    conv_frac=0.2,
-    use_aux=True,
-)
-
-    results_super = []
-    for i in range(10):
-        r = full_report(model, model_name="SupperMamba_dims=3", accuracy=99.0)
-        results_super.append(r["inference_time"]["median_ms"])
-        time.sleep(2)
-    """
-    time.sleep(15)
-    results_Light_hybric = []
-    for i in range(10):
-        r = full_report(Light_HybricMamba, model_name="Light_HybricMamba", accuracy=97.46)
-        results_Light_hybric.append(r["inference_time"]["median_ms"])
-        time.sleep(2)
-    time.sleep(15)
-    results_Medium_hybric = []
-    for i in range(10):
-        r = full_report(Medium_HybricMamba, model_name="Medium_HybricMamba", accuracy=98.76)
-        results_Medium_hybric.append(r["inference_time"]["median_ms"])
-        time.sleep(2)
-    time.sleep(15)
-    results_Heavy_hybric = []
-    for i in range(10):
-        r = full_report(Heavy_HybricMamba, model_name="Heavy_HybricMamba", accuracy=99.0)
-        results_Heavy_hybric.append(r["inference_time"]["median_ms"])
-        time.sleep(2)
-        print(f"LightHybricMamba - median của 10 lần: {np.median(results_Light_hybric):.3f} ms "
-          f"(min={min(results_Light_hybric):.3f}, max={max(results_Light_hybric):.3f})")
-    print(f"\nMedium_HybricMamba  - median của 10 lần: {np.median(results_Medium_hybric):.3f} ms "
-          f"(min={min(results_Medium_hybric):.3f}, max={max(results_Medium_hybric):.3f})")
-    print(f"LightHybricMamba - median của 10 lần: {np.median(results_Heavy_hybric):.3f} ms "
-          f"(min={min(results_Heavy_hybric):.3f}, max={max(results_Heavy_hybric):.3f})")
-    """
-    print(f"\nSuperMamba  - median của 10 lần: {np.median(results_super):.3f} ms "
-          f"(min={min(results_super):.3f}, max={max(results_super):.3f})")
-
+    # 3. In kết quả tổng hợp
+    print("\n" + "=" * 80)
+    print("TỔNG HỢP KẾT QUẢ SUY LUẬN (MEDIAN 10 LẦN THỬ NGHIỆM)")
+    print("=" * 80)
+    for name, times in final_results.items():
+        print(
+            f"{name:<20s} - median: {np.median(times):.3f} ms "
+            f"(min={min(times):.3f}, max={max(times):.3f})"
+        )

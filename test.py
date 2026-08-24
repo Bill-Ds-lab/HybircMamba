@@ -209,9 +209,6 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # ============================================================
-    # LẤY CONFIG TỪ CHECKPOINT
-    # ============================================================
     config = get_model_config_from_checkpoint(args.checkpoint, device)
     print(f"📊 Model config từ checkpoint:")
     print(f"   dims: {config['dims']}")

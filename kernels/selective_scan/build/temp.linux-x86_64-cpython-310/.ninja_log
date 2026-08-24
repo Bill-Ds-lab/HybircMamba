@@ -1,0 +1,10 @@
+# ninja log v7
+1	8942	1787472104829483406	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cus/selective_scan_core_fwd.o	2c8f3871626a68a4
+0	13914	1787472104828059686	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cus/selective_scan.o	b1672803db10d2aa
+1	20044	1787472104829059679	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cus/selective_scan_core_bwd.o	5d6c0c55b86a66cf
+2	7533	1787472125169932581	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cusndstate/selective_scan_core_fwd.o	e478fd7a5c7cf5bc
+2	15262	1787472125170392321	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cusndstate/selective_scan_ndstate.o	38a0c31db738e0da
+1	20550	1787472125168932587	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cusndstate/selective_scan_core_bwd.o	2aab95674e800496
+2	13733	1787472145994478672	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cusoflex/selective_scan_core_fwd.o	1348e26a2c51fc1a
+2	16682	1787472145994671896	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cusoflex/selective_scan_oflex.o	fb8e188fca6510bd
+2	33708	1787472145993813402	/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/kernels/selective_scan/build/temp.linux-x86_64-cpython-310/csrc/selective_scan/cusoflex/selective_scan_core_bwd.o	91cdf4870ffe91d6
