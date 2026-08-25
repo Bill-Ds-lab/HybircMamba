@@ -250,9 +250,9 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     )
 
     # 4. Tạo DataLoader
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=4, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=4, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=12, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=12, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=12, pin_memory=True)
 
     log_msg = f"Dữ liệu đã chia -> Train (70%): {len(train_dataset)} | Val (15%): {len(val_dataset)} | Test (15%): {len(test_dataset)}"
     print(log_msg)
