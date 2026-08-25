@@ -38,18 +38,14 @@ def get_args():
     parser.add_argument('--root_dataset_path',
                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
                         type=str)
-    """"
-    parser.add_argument('--save_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ",
-                        type=str)
-                        """
+
     parser.add_argument('--save_path',
                         default="/kaggle/working/",
                         type=str)
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=30, type=int)
+    parser.add_argument('--early_stop_patience', default=15, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -250,9 +246,9 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     )
 
     # 4. Tạo DataLoader
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=16, pin_memory=True,persistent_workers=True,prefetch_factor=8)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=16, pin_memory=True,persistent_workers=True,prefetch_factor=8)
-    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=16, pin_memory=True,persistent_workers=True,prefetch_factor=8)
+    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=4, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=4, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=4, pin_memory=True)
 
     log_msg = f"Dữ liệu đã chia -> Train (70%): {len(train_dataset)} | Val (15%): {len(val_dataset)} | Test (15%): {len(test_dataset)}"
     print(log_msg)
@@ -474,11 +470,11 @@ def load_checkpoint_safely(
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 30:
+    elif epoch < 20:
         lr = base_lr
-    elif epoch < 50:
+    elif epoch < 40:
         lr = base_lr * 0.1
-    elif epoch < 75:
+    elif epoch < 45:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
@@ -656,6 +652,7 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
 
 # ======================================================================== MAIN =================================================
+"""       """
 
 if __name__ == "__main__":
     modelname = [
@@ -664,13 +661,13 @@ if __name__ == "__main__":
         "HEAVY_HYBRIC_MAMBA",
         "SUPER_MAMBA_DEPT_3",
         "SUPER_MAMBA_DEPT_4",
+        "EFFICIENTNET_B0",
+        "MOBILENETV3_SMALL",
+        "GHOSTNET",
         "VGG16",
         "RESNET18",
         "VIT_B",
         "VIT_S",
-        "EFFICIENTNET_B0",
-        "MOBILENETV3_SMALL",
-        "GHOSTNET",
     ]
     datasetname = [
         "German",
@@ -687,7 +684,7 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    for i in range(0,12,1):
+    for i in range(11,7,-1):
         args.__setattr__("model_name", modelname[i])
 
         args.__setattr__("dataset_name", datasetname[0])
@@ -695,7 +692,7 @@ if __name__ == "__main__":
         args.__setattr__("batch_size", 128)
         args.__setattr__("img_size", 32)
         args.__setattr__("class_num", 43)
-        args.__setattr__("num_epoch", 100)
+        args.__setattr__("num_epoch", 50)
 
         args.__setattr__("model_name", modelname[i])
 

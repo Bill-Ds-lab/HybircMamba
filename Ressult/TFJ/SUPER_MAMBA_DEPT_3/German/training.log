@@ -66,3 +66,12 @@
 2026-08-22 10:47:35 [INFO] Epoch 24 | Acc: 0.9803 | Loss: 0.1260 | Eval Loss: 0.0669 | LR: 0.000000
 2026-08-22 10:51:00 [INFO] Epoch 25 | Acc: 0.9806 | Loss: 0.1266 | Eval Loss: 0.0667 | LR: 0.000000
 2026-08-22 10:54:25 [INFO] Epoch 26 | Acc: 0.9804 | Loss: 0.1259 | Eval Loss: 0.0667 | LR: 0.000000
+
+============================================================
+TEST EVALUATION REPORT - 2026-08-26 00:01:47
+Checkpoint Path    : /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_3/German/Super_Mamba_dim_3_best.pth
+Total Test Samples : 83623
+Accuracy           : 98.16%
+F1-Score (Macro)   : 98.29%
+F1-Score (Weighted): 98.17%
+============================================================

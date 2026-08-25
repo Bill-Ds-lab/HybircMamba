@@ -62,3 +62,12 @@
 2026-08-21 20:30:01 [INFO] Epoch 20 | Acc: 0.9785 | Loss: 0.2935 | Eval Loss: 0.0725 | LR: 0.0000001
 2026-08-21 20:33:01 [INFO] Epoch 21 | Acc: 0.9786 | Loss: 0.2920 | Eval Loss: 0.0724 | LR: 0.0000001
 2026-08-21 20:33:01 [INFO] ✓ Saved best model: Acc=0.9786 at epoch 21
+
+============================================================
+TEST EVALUATION REPORT - 2026-08-25 23:47:07
+Checkpoint Path    : /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/MEDIUM_HYBRIC_MAMBA/German/Medium_HybricMamba_best.pth
+Total Test Samples : 83623
+Accuracy           : 97.96%
+F1-Score (Macro)   : 98.11%
+F1-Score (Weighted): 97.96%
+============================================================

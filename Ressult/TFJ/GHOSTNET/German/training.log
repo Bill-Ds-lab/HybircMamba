@@ -1,0 +1,91 @@
+2026-08-25 23:12:33 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-25 23:12:34 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-25 23:12:34 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-25 23:12:36 [INFO]   Batch 0: 34 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:12:36 [INFO]   Batch 1: 32 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:12:36 [INFO]   Batch 2: 34 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:12:36 [INFO]   Batch 3: 34 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:12:36 [INFO]   Batch 4: 35 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:12:36 [INFO] ✅ Shuffle tốt! Trung bình 33.8 classes/batch
+2026-08-25 23:12:36 [INFO] ============================================================
+2026-08-25 23:12:36 [INFO] Starting training: GHOSTNET
+2026-08-25 23:12:36 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-25 23:12:36 [INFO] Device: cuda
+2026-08-25 23:12:36 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-25 23:12:36 [INFO] ============================================================
+2026-08-25 23:16:30 [INFO] Epoch 000 | Train Loss: 1.0687 | Train Acc: 0.6803 | Val Loss: 0.2804 | Val Acc: 0.9148
+2026-08-25 23:16:30 [INFO] ✓ Saved best model: Val Acc=0.9148 at epoch 0
+2026-08-25 23:20:30 [INFO] Epoch 001 | Train Loss: 0.3692 | Train Acc: 0.8893 | Val Loss: 0.1539 | Val Acc: 0.9543
+2026-08-25 23:20:32 [INFO] ✓ Saved best model: Val Acc=0.9543 at epoch 1
+2026-08-25 23:22:42 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-25 23:22:43 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-25 23:22:43 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-25 23:22:45 [INFO]   Batch 0: 36 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:22:45 [INFO]   Batch 1: 34 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:22:45 [INFO]   Batch 2: 36 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:22:45 [INFO]   Batch 3: 33 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:22:45 [INFO]   Batch 4: 35 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:22:45 [INFO] ✅ Shuffle tốt! Trung bình 34.8 classes/batch
+2026-08-25 23:22:45 [INFO] ============================================================
+2026-08-25 23:22:45 [INFO] Starting training: GHOSTNET
+2026-08-25 23:22:45 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-25 23:22:45 [INFO] Device: cuda
+2026-08-25 23:22:45 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-25 23:22:45 [INFO] ============================================================
+2026-08-25 23:22:45 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/GHOSTNET/German/GHOSTNET_best.pth
+2026-08-25 23:23:42 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-25 23:23:43 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-25 23:23:43 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-25 23:23:45 [INFO]   Batch 0: 33 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:23:45 [INFO]   Batch 1: 33 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:23:45 [INFO]   Batch 2: 37 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:23:45 [INFO]   Batch 3: 34 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:23:45 [INFO]   Batch 4: 33 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:23:45 [INFO] ✅ Shuffle tốt! Trung bình 34.0 classes/batch
+2026-08-25 23:23:45 [INFO] ============================================================
+2026-08-25 23:23:45 [INFO] Starting training: GHOSTNET
+2026-08-25 23:23:45 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-25 23:23:45 [INFO] Device: cuda
+2026-08-25 23:23:45 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-25 23:23:45 [INFO] ============================================================
+2026-08-25 23:23:45 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/GHOSTNET/German/GHOSTNET_best.pth
+2026-08-25 23:26:16 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-25 23:26:17 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-25 23:26:17 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-25 23:26:19 [INFO]   Batch 0: 38 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:26:19 [INFO]   Batch 1: 33 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:26:19 [INFO]   Batch 2: 35 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:26:19 [INFO]   Batch 3: 37 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 23:26:19 [INFO]   Batch 4: 36 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 23:26:19 [INFO] ✅ Shuffle tốt! Trung bình 35.8 classes/batch
+2026-08-25 23:26:19 [INFO] ============================================================
+2026-08-25 23:26:19 [INFO] Starting training: GHOSTNET
+2026-08-25 23:26:19 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-25 23:26:19 [INFO] Device: cuda
+2026-08-25 23:26:19 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-25 23:26:19 [INFO] ============================================================
+2026-08-25 23:26:19 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/GHOSTNET/German/GHOSTNET_best.pth
+2026-08-25 23:30:12 [INFO] Epoch 002 | Train Loss: 0.2812 | Train Acc: 0.9168 | Val Loss: 0.1315 | Val Acc: 0.9611
+2026-08-25 23:30:12 [INFO] ✓ Saved best model: Val Acc=0.9611 at epoch 2
+2026-08-25 23:34:04 [INFO] Epoch 003 | Train Loss: 0.2528 | Train Acc: 0.9263 | Val Loss: 0.1284 | Val Acc: 0.9628
+2026-08-25 23:34:04 [INFO] ✓ Saved best model: Val Acc=0.9628 at epoch 3
+2026-08-25 23:37:54 [INFO] Epoch 004 | Train Loss: 0.2440 | Train Acc: 0.9300 | Val Loss: 0.1296 | Val Acc: 0.9627
+2026-08-25 23:42:26 [INFO] Epoch 005 | Train Loss: 0.2171 | Train Acc: 0.9380 | Val Loss: 0.1033 | Val Acc: 0.9706
+2026-08-25 23:42:26 [INFO] ✓ Saved best model: Val Acc=0.9706 at epoch 5
+2026-08-25 23:47:26 [INFO] Epoch 006 | Train Loss: 0.2030 | Train Acc: 0.9420 | Val Loss: 0.1027 | Val Acc: 0.9705
+2026-08-25 23:52:39 [INFO] Epoch 007 | Train Loss: 0.1933 | Train Acc: 0.9445 | Val Loss: 0.0958 | Val Acc: 0.9714
+2026-08-25 23:52:39 [INFO] ✓ Saved best model: Val Acc=0.9714 at epoch 7
+2026-08-25 23:57:54 [INFO] Epoch 008 | Train Loss: 0.1857 | Train Acc: 0.9470 | Val Loss: 0.0970 | Val Acc: 0.9720
+2026-08-25 23:57:54 [INFO] ✓ Saved best model: Val Acc=0.9720 at epoch 8
+2026-08-26 00:04:16 [INFO] Epoch 009 | Train Loss: 0.1808 | Train Acc: 0.9485 | Val Loss: 0.0912 | Val Acc: 0.9733
+2026-08-26 00:04:16 [INFO] ✓ Saved best model: Val Acc=0.9733 at epoch 9
+2026-08-26 00:10:50 [INFO] Epoch 010 | Train Loss: 0.1736 | Train Acc: 0.9507 | Val Loss: 0.1028 | Val Acc: 0.9711
+2026-08-26 00:14:44 [INFO] Epoch 011 | Train Loss: 0.1706 | Train Acc: 0.9515 | Val Loss: 0.0762 | Val Acc: 0.9776
+2026-08-26 00:14:44 [INFO] ✓ Saved best model: Val Acc=0.9776 at epoch 11

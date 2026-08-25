@@ -102,3 +102,12 @@
 2026-08-22 07:19:38 [INFO] Epoch 24 | Acc: 0.9854 | Loss: 0.2002 | Eval Loss: 0.0495 | LR: 0.000001
 2026-08-22 07:25:44 [INFO] Epoch 25 | Acc: 0.9855 | Loss: 0.1990 | Eval Loss: 0.0497 | LR: 0.000000
 2026-08-22 07:32:28 [INFO] Epoch 26 | Acc: 0.9855 | Loss: 0.2000 | Eval Loss: 0.0496 | LR: 0.000000
+
+============================================================
+TEST EVALUATION REPORT - 2026-08-25 23:54:37
+Checkpoint Path    : /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HEAVY_HYBRIC_MAMBA/German/Heavy_HybricMamba_best.pth
+Total Test Samples : 83623
+Accuracy           : 98.61%
+F1-Score (Macro)   : 98.73%
+F1-Score (Weighted): 98.61%
+============================================================
