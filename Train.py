@@ -225,8 +225,7 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
         class_to_idx=full_dataset.class_to_idx, shuffle_samples=False
     )
 
-    # Kaggle giới hạn số CPU core (~2-4 cores), dùng num_workers=4 để tránh đơ pipeline/OOM CPU
-    num_workers = min(4, os.cpu_count() or 2)
+    num_workers = 12
 
     train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=num_workers,
                               pin_memory=True)
