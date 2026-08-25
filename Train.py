@@ -687,10 +687,10 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    for i in range(5,12,1):
+    for i in range(0,12,1):
         args.__setattr__("model_name", modelname[i])
 
-        args.__setattr__("dataset_name", datasetname[4])
+        args.__setattr__("dataset_name", datasetname[0])
         args.__setattr__("root_dataset_path", datasetpath[4])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
