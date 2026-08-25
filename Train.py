@@ -29,7 +29,6 @@ def get_args():
     parser = argparse.ArgumentParser(description="Traffic Sign Recognition Training with Mamba")
 
     parser.add_argument('--model_name', default="LIGHT_HYBRIC_MAMBA", type=str)
-    # Hỗ trợ: "German" (folder root/<class>), "German_CSV" (root/Train.csv), "Belgium" (root/Train/<class> + root/Test/<class>)
     parser.add_argument('--dataset_name', default="German", type=str,
                         choices=["German", "German_CSV", "Belgium"])
     parser.add_argument('--csv_filename', default="Train.csv", type=str,
@@ -470,11 +469,11 @@ def load_checkpoint_safely(
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 20:
+    elif epoch < 30:
         lr = base_lr
-    elif epoch < 40:
+    elif epoch < 50:
         lr = base_lr * 0.1
-    elif epoch < 45:
+    elif epoch < 60:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
@@ -692,7 +691,7 @@ if __name__ == "__main__":
         args.__setattr__("batch_size", 128)
         args.__setattr__("img_size", 32)
         args.__setattr__("class_num", 43)
-        args.__setattr__("num_epoch", 50)
+        args.__setattr__("num_epoch", 70)
 
         args.__setattr__("model_name", modelname[i])
 
