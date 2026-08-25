@@ -58,7 +58,7 @@ def get_ext():
             warnings.warn("CUDA version ealier than 11.6 may leads to performance mismatch.")
         if bare_metal_version < Version("11.2"):
             multi_threads = False
-            
+    cc_flag.extend(["-gencode", "arch=compute_75,code=sm_75"])
     cc_flag.extend(["-gencode", "arch=compute_80,code=sm_80"])
     if gencode_sm90:
         cc_flag.extend(["-gencode", "arch=compute_90,code=sm_90"])
