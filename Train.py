@@ -692,7 +692,7 @@ if __name__ == "__main__":
 
         args.__setattr__("dataset_name", datasetname[0])
         args.__setattr__("root_dataset_path", datasetpath[4])
-        args.__setattr__("batch_size", 526)
+        args.__setattr__("batch_size", 128)
         args.__setattr__("img_size", 32)
         args.__setattr__("class_num", 43)
         args.__setattr__("num_epoch", 100)
