@@ -91,3 +91,7 @@
 2026-08-26 00:14:44 [INFO] ✓ Saved best model: Val Acc=0.9776 at epoch 11
 2026-08-26 00:18:49 [INFO] Epoch 012 | Train Loss: 0.1669 | Train Acc: 0.9524 | Val Loss: 0.0922 | Val Acc: 0.9737
 2026-08-26 00:22:41 [INFO] Epoch 013 | Train Loss: 0.1648 | Train Acc: 0.9532 | Val Loss: 0.0818 | Val Acc: 0.9762
+2026-08-26 00:26:36 [INFO] Epoch 014 | Train Loss: 0.1604 | Train Acc: 0.9545 | Val Loss: 0.0924 | Val Acc: 0.9737
+2026-08-26 00:30:29 [INFO] Epoch 015 | Train Loss: 0.1588 | Train Acc: 0.9548 | Val Loss: 0.0860 | Val Acc: 0.9756
+2026-08-26 00:34:19 [INFO] Epoch 016 | Train Loss: 0.1555 | Train Acc: 0.9557 | Val Loss: 0.0871 | Val Acc: 0.9777
+2026-08-26 00:34:19 [INFO] ✓ Saved best model: Val Acc=0.9777 at epoch 16

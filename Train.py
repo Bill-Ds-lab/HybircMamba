@@ -480,7 +480,7 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
 
     return max(lr, min_lr)
     """
-def get_lr(epoch, base_lr=3e-4, min_lr=1e-6, total_epochs=70):
+def get_lr(epoch, base_lr=3e-4, min_lr=1e-6, total_epochs=50):
     warmup_epochs = 5
 
     # Warmup
@@ -707,7 +707,7 @@ if __name__ == "__main__":
         args.__setattr__("batch_size", 128)
         args.__setattr__("img_size", 32)
         args.__setattr__("class_num", 43)
-        args.__setattr__("num_epoch", 70)
+        args.__setattr__("num_epoch", 50)
 
         args.__setattr__("model_name", modelname[i])
 
