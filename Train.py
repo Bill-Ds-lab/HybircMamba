@@ -465,7 +465,7 @@ def load_checkpoint_safely(
     return model, start_epoch, best_val_acc
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
-
+"""
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
@@ -477,6 +477,22 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
+
+    return max(lr, min_lr)
+    """
+def get_lr(epoch, base_lr=3e-4, min_lr=1e-6, total_epochs=70):
+    warmup_epochs = 5
+
+    # Warmup
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+
+    # Cosine decay
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (
+        1 + np.cos(np.pi * progress)
+    )
 
     return max(lr, min_lr)
 # ======================================================================== TRAIN AND VAL ===============================================
