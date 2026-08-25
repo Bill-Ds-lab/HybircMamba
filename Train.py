@@ -225,7 +225,7 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
         class_to_idx=full_dataset.class_to_idx, shuffle_samples=False
     )
 
-    num_workers = 12
+    num_workers = 4
 
     train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=num_workers,
                               pin_memory=True)
