@@ -13,11 +13,11 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-from sklearn.metrics import confusion_matrix, f1_score
+
 from Dataloader.DATASET import TrafficSignDataset
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
@@ -29,20 +29,14 @@ def get_args():
     parser = argparse.ArgumentParser(description="Traffic Sign Recognition Training with Mamba")
 
     parser.add_argument('--model_name', default="LIGHT_HYBRIC_MAMBA", type=str)
-    # Hỗ trợ: "German" (folder root/<class>), "German_CSV" (root/Train.csv), "Belgium" (root/Train/<class> + root/Test/<class>)
     parser.add_argument('--dataset_name', default="German", type=str,
                         choices=["German", "German_CSV", "Belgium"])
     parser.add_argument('--csv_filename', default="Train.csv", type=str,
                         help="Chỉ dùng khi dataset_name=German_CSV")
     parser.add_argument('--class_num', default=43, type=int)
     parser.add_argument('--root_dataset_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
+                        default="/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan",
                         type=str)
-    """"
-    parser.add_argument('--save_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ",
-                        type=str)
-                        """
     parser.add_argument('--save_path',
                         default="/kaggle/working/",
                         type=str)
@@ -51,7 +45,7 @@ def get_args():
 
     parser.add_argument('--early_stop_patience', default=30, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
-    parser.add_argument('--batch_size', default=64, type=int)
+    parser.add_argument('--batch_size', default=128, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--finetune_lr', default=1e-4, type=float)
@@ -61,9 +55,7 @@ def get_args():
     parser.add_argument('--label_smoothing', default=0.0, type=float)
 
     parser.add_argument('--resume', action='store_true', default=False)
-    parser.add_argument('--resume_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/Super_Mamba_dim_3/German/Super_Mamba_dim_3_best.pth",
-                        type=str)
+    parser.add_argument('--resume_path', default="", type=str)
 
     return parser.parse_args()
 
@@ -119,18 +111,15 @@ def build_Model(name, num_classes, pretrained=True):
     elif name in ["RESNET18", "ResNet18"]:
         return timm.create_model('resnet18', pretrained=pretrained, num_classes=num_classes)
     elif name in ["VIT_B", "ViT-B"]:
-        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes,img_size=32)
+        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes, img_size=32)
     elif name in ["VIT_S", "ViT-S"]:
-        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes,img_size=32)
+        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes, img_size=32)
     elif name in ["EFFICIENTNET_B0", "EfficientNet-B0"]:
         return timm.create_model('efficientnet_b0', pretrained=pretrained, num_classes=num_classes)
-
     elif name in ["MOBILENETV3_SMALL", "MobileNetV3-Small"]:
         return timm.create_model('mobilenetv3_small_100', pretrained=pretrained, num_classes=num_classes)
-
     elif name in ["GHOSTNET", "GhostNet"]:
         return timm.create_model('ghostnet_100', pretrained=pretrained, num_classes=num_classes)
-
     else:
         raise ValueError(f"Tên mô hình '{name}' không tồn tại.")
 
@@ -195,20 +184,9 @@ def setup_logging(folder_path):
     return logger
 
 
-# =================================== DATASET CLASS (DUY NHẤT) =================================================
-
-def natural_sort_key(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', str(s))]
-
-
-IMG_EXTS = ('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.ppm')
-
-
-
 # =============================================================== DATA LOADER FACTORY ======================================================
 
 def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32, seed=42, logger=None):
-
     transform_train, transform_test = get_transforms(img_size)
     dataset_class = type(full_dataset)
 
@@ -218,7 +196,6 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     if logger:
         logger.info(log_msg)
 
-    # 2. Split dataset theo Stratified Split
     indices = list(range(len(full_dataset)))
     labels = [full_dataset.class_to_idx[full_dataset.samples[i][1]] for i in indices]
 
@@ -235,7 +212,6 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     val_samples = [full_dataset.samples[i] for i in val_idx]
     test_samples = [full_dataset.samples[i] for i in test_idx]
 
-    # 3. Khởi tạo Dataset thành phần (chỉ copy samples có sẵn, không quét lại ổ đĩa)
     train_dataset = dataset_class(
         root=root, transform=transform_train, samples=train_samples,
         class_to_idx=full_dataset.class_to_idx, shuffle_samples=True
@@ -249,10 +225,14 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
         class_to_idx=full_dataset.class_to_idx, shuffle_samples=False
     )
 
-    # 4. Tạo DataLoader
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=12, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=12, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=12, pin_memory=True)
+    # Kaggle giới hạn số CPU core (~2-4 cores), dùng num_workers=4 để tránh đơ pipeline/OOM CPU
+    num_workers = min(4, os.cpu_count() or 2)
+
+    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=num_workers,
+                              pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers,
+                             pin_memory=True)
 
     log_msg = f"Dữ liệu đã chia -> Train (70%): {len(train_dataset)} | Val (15%): {len(val_dataset)} | Test (15%): {len(test_dataset)}"
     print(log_msg)
@@ -295,14 +275,21 @@ def check_batch_distribution(dataloader, num_batches=5, logger=None):
 
 
 # =========================================================== LOAD CHECKPOINT ========================================================================
-"""
-def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimizer=None, scaler=None):
+
+def load_checkpoint_safely(
+        model,
+        checkpoint_path,
+        device,
+        logger=None,
+        optimizer=None,
+        scaler=None
+):
     log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
     print(log_msg)
     if logger:
         logger.info(log_msg)
 
-    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
 
     state_dict = None
     if isinstance(checkpoint, dict):
@@ -320,10 +307,13 @@ def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimize
         name = k.replace("module.", "") if k.startswith("module.") else k
         clean_state_dict[name] = v
 
-    missing_keys, unexpected_keys = model.load_state_dict(clean_state_dict, strict=False)
+    # Nếu mô hình đang bọc bởi DataParallel, load vào model.module
+    target_model = model.module if isinstance(model, nn.DataParallel) else model
+    missing_keys, unexpected_keys = target_model.load_state_dict(clean_state_dict, strict=False)
 
     if len(missing_keys) > 0 and logger:
         logger.warning(f"⚠️ Thiếu {len(missing_keys)} keys trong weights!")
+
     if len(unexpected_keys) > 0 and logger:
         logger.warning(f"⚠️ Thừa {len(unexpected_keys)} keys không khớp mô hình!")
 
@@ -331,143 +321,25 @@ def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimize
         try:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         except Exception as e:
-            if logger: logger.warning(f"⚠️ Không thể khôi phục optimizer state: {e}")
+            if logger:
+                logger.warning(f"⚠️ Không thể khôi phục optimizer state: {e}")
 
     if scaler is not None and isinstance(checkpoint, dict) and 'scaler_state_dict' in checkpoint:
         try:
             scaler.load_state_dict(checkpoint['scaler_state_dict'])
         except Exception as e:
-            if logger: logger.warning(f"⚠️ Không thể khôi phục scaler state: {e}")
+            if logger:
+                logger.warning(f"⚠️ Không thể khôi phục scaler state: {e}")
 
     start_epoch = checkpoint.get('epoch', -1) + 1 if isinstance(checkpoint, dict) else 0
     best_val_acc = checkpoint.get('best_val_acc', 0.0) if isinstance(checkpoint, dict) else 0.0
-
-    return model, start_epoch, best_val_acc
-"""
-def load_checkpoint_safely(
-    model,
-    checkpoint_path,
-    device,
-    logger=None,
-    optimizer=None,
-    scaler=None
-):
-    log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
-    print(log_msg)
-
-    if logger:
-        logger.info(log_msg)
-
-    # =========================================================
-    # LOAD CHECKPOINT TRÊN CPU
-    # =========================================================
-    checkpoint = torch.load(
-        checkpoint_path,
-        map_location="cpu",
-        weights_only=False
-    )
-
-    # =========================================================
-    # LẤY MODEL STATE
-    # =========================================================
-    state_dict = None
-
-    if isinstance(checkpoint, dict):
-        for key in [
-            'model_state_dict',
-            'state_dict',
-            'model',
-            'net'
-        ]:
-            if key in checkpoint:
-                state_dict = checkpoint[key]
-                break
-
-        if state_dict is None:
-            state_dict = checkpoint
-    else:
-        state_dict = checkpoint
-
-    # =========================================================
-    # REMOVE "module."
-    # =========================================================
-    clean_state_dict = {}
-
-    for k, v in state_dict.items():
-        name = k.replace("module.", "") if k.startswith("module.") else k
-        clean_state_dict[name] = v
-
-    # =========================================================
-    # LOAD MODEL WEIGHT
-    # =========================================================
-    missing_keys, unexpected_keys = model.load_state_dict(
-        clean_state_dict,
-        strict=False
-    )
-
-    if len(missing_keys) > 0 and logger:
-        logger.warning(
-            f"⚠️ Thiếu {len(missing_keys)} keys trong weights!"
-        )
-
-    if len(unexpected_keys) > 0 and logger:
-        logger.warning(
-            f"⚠️ Thừa {len(unexpected_keys)} keys không khớp mô hình!"
-        )
-
-    # =========================================================
-    # CHỈ LOAD OPTIMIZER KHI RESUME TRAINING
-    # =========================================================
-    if (
-        optimizer is not None
-        and isinstance(checkpoint, dict)
-        and 'optimizer_state_dict' in checkpoint
-    ):
-        try:
-            optimizer.load_state_dict(
-                checkpoint['optimizer_state_dict']
-            )
-        except Exception as e:
-            if logger:
-                logger.warning(
-                    f"⚠️ Không thể khôi phục optimizer state: {e}"
-                )
-
-    # =========================================================
-    # LOAD SCALER KHI RESUME TRAINING
-    # =========================================================
-    if (
-        scaler is not None
-        and isinstance(checkpoint, dict)
-        and 'scaler_state_dict' in checkpoint
-    ):
-        try:
-            scaler.load_state_dict(
-                checkpoint['scaler_state_dict']
-            )
-        except Exception as e:
-            if logger:
-                logger.warning(
-                    f"⚠️ Không thể khôi phục scaler state: {e}"
-                )
-
-    start_epoch = (
-        checkpoint.get('epoch', -1) + 1
-        if isinstance(checkpoint, dict)
-        else 0
-    )
-
-    best_val_acc = (
-        checkpoint.get('best_val_acc', 0.0)
-        if isinstance(checkpoint, dict)
-        else 0.0
-    )
 
     del checkpoint
     del state_dict
     del clean_state_dict
 
     return model, start_epoch, best_val_acc
+
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
 
@@ -484,11 +356,14 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
         lr = base_lr * 0.001
 
     return max(lr, min_lr)
+
+
 # ======================================================================== TRAIN AND VAL ===============================================
 
 def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logger):
     set_seed(args.SEED)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    num_gpus = torch.cuda.device_count()
 
     model_name = args.model_name
     folder_path = os.path.join(args.save_path, model_name, args.dataset_name)
@@ -498,18 +373,25 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
     logger.info(f"Starting training: {model_name}")
     logger.info(f"Dataset: {args.dataset_name} | Path: {args.root_dataset_path}")
     logger.info(f"Device: {device}")
+
+    # ------------------ CẤU HÌNH MULTI-GPU (DATA PARALLEL) ------------------
     if torch.cuda.is_available():
-        logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
+        for gpu_idx in range(num_gpus):
+            logger.info(f"GPU {gpu_idx}: {torch.cuda.get_device_name(gpu_idx)}")
+
+        model = model.to(device)
+        if num_gpus > 1:
+            logger.info(f"⚡ Bật chế độ DataParallel trên {num_gpus} GPUs!")
+            model = nn.DataParallel(model)
+    else:
+        model = model.to(device)
     logger.info("=" * 60)
 
-    model = model.to(device)
     criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
     scaler = torch.amp.GradScaler('cuda', enabled=torch.cuda.is_available())
 
     start_epoch = 0
     best_val_acc = 0.0
-    #base_lr = args.finetune_lr if args.resume and os.path.exists(args.resume_path) else args.lr
-
     base_lr = args.lr
     optimizer = torch.optim.AdamW(model.parameters(), lr=base_lr, weight_decay=args.weight_decay)
 
@@ -520,7 +402,8 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
     best_checkpoint_path = os.path.join(folder_path, f"{model_name}_best.pth")
     patience_counter = 0
-    early_stop_patience=args.early_stop_patience
+    early_stop_patience = args.early_stop_patience
+
     for epoch in range(start_epoch, args.num_epoch):
         current_lr = get_lr(epoch, base_lr)
         for param_group in optimizer.param_groups:
@@ -536,6 +419,8 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
                 with torch.amp.autocast('cuda', enabled=torch.cuda.is_available()):
                     output = model(data)
+
+                    # DataParallel tự động gộp output dạng tuple từ các GPU lại
                     if isinstance(output, tuple):
                         logits = output[0]
                         loss = criterion(logits, target)
@@ -593,13 +478,17 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
         print(log_msg)
         logger.info(log_msg)
 
+        # Trích xuất state_dict không có tiền tố 'module.' để lưu checkpoint chuẩn
+        raw_model_state = model.module.state_dict() if isinstance(model, nn.DataParallel) else model.state_dict()
+
         checkpoint_state = {
             'epoch': epoch,
-            'model_state_dict': model.state_dict(),
+            'model_state_dict': raw_model_state,
             'optimizer_state_dict': optimizer.state_dict(),
             'scaler_state_dict': scaler.state_dict(),
             'best_val_acc': max(best_val_acc, val_acc),
         }
+
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             patience_counter = 0
@@ -609,11 +498,9 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
         else:
             patience_counter += 1
             if patience_counter >= early_stop_patience:
-                logger.info(f"⏹ Early stopping tại epoch {epoch} "
-                            f"(không cải thiện sau {early_stop_patience} epoch, best={best_val_acc:.4f})")
+                logger.info(
+                    f"⏹ Early stopping tại epoch {epoch} (không cải thiện sau {early_stop_patience} epoch, best={best_val_acc:.4f})")
                 break
-
-
 
     logger.info("Evaluating Best Model on TEST Set...")
     if os.path.exists(best_checkpoint_path):
@@ -627,7 +514,8 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
         for images, labels in test_loader:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
             outputs = model(images)
-            if isinstance(outputs, tuple): outputs = outputs[0]
+            if isinstance(outputs, tuple):
+                outputs = outputs[0]
 
             loss = criterion(outputs, labels)
             running_test_loss += loss.item()
@@ -678,7 +566,7 @@ if __name__ == "__main__":
         "German_51k",
         "NEU-DET_surface-dec"
     ]
-    datasetpath=[
+    datasetpath = [
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
@@ -687,17 +575,17 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    for i in range(0,12,1):
+    for i in range(0, 12, 1):
         args.__setattr__("model_name", modelname[i])
 
         args.__setattr__("dataset_name", datasetname[0])
         args.__setattr__("root_dataset_path", datasetpath[4])
+
+        # Batch size này sẽ chia đều cho 2 GPU (mỗi GPU xử lý 64 samples)
         args.__setattr__("batch_size", 128)
         args.__setattr__("img_size", 32)
         args.__setattr__("class_num", 43)
         args.__setattr__("num_epoch", 100)
-
-        args.__setattr__("model_name", modelname[i])
 
         args.__setattr__("resume_path",
                          os.path.join(
