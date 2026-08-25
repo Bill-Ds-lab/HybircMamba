@@ -38,14 +38,21 @@ def get_args():
     parser.add_argument('--root_dataset_path',
                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
                         type=str)
+    """"
     parser.add_argument('--save_path',
                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ",
                         type=str)
+                        """
+    parser.add_argument('--save_path',
+                        default="/kaggle/working/",
+                        type=str)
 
     parser.add_argument('--picture_size', default=32, type=int)
-    parser.add_argument('--SEED', default=23, type=int)
+
+    parser.add_argument('--early_stop_patience', default=30, type=int)
+    parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
-    parser.add_argument('--num_epoch', default=100, type=int)
+    parser.add_argument('--num_epoch', default=130, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
     parser.add_argument('--finetune_lr', default=1e-4, type=float)
     parser.add_argument('--min_lr', default=1e-6, type=float)
@@ -167,16 +174,25 @@ def setup_logging(folder_path):
     os.makedirs(folder_path, exist_ok=True)
     log_file = os.path.join(folder_path, 'training.log')
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler()
-        ]
+    logger = logging.getLogger(folder_path)
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+    logger.propagate = False
+
+    formatter = logging.Formatter(
+        '%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
     )
-    return logging.getLogger(__name__)
+
+    fh = logging.FileHandler(log_file)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+
+    sh = logging.StreamHandler()
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
+
+    return logger
 
 
 # =================================== DATASET CLASS (DUY NHẤT) =================================================
@@ -279,7 +295,7 @@ def check_batch_distribution(dataloader, num_batches=5, logger=None):
 
 
 # =========================================================== LOAD CHECKPOINT ========================================================================
-
+"""
 def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimizer=None, scaler=None):
     log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
     print(log_msg)
@@ -327,22 +343,147 @@ def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimize
     best_val_acc = checkpoint.get('best_val_acc', 0.0) if isinstance(checkpoint, dict) else 0.0
 
     return model, start_epoch, best_val_acc
+"""
+def load_checkpoint_safely(
+    model,
+    checkpoint_path,
+    device,
+    logger=None,
+    optimizer=None,
+    scaler=None
+):
+    log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
+    print(log_msg)
 
+    if logger:
+        logger.info(log_msg)
+
+    # =========================================================
+    # LOAD CHECKPOINT TRÊN CPU
+    # =========================================================
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location="cpu",
+        weights_only=False
+    )
+
+    # =========================================================
+    # LẤY MODEL STATE
+    # =========================================================
+    state_dict = None
+
+    if isinstance(checkpoint, dict):
+        for key in [
+            'model_state_dict',
+            'state_dict',
+            'model',
+            'net'
+        ]:
+            if key in checkpoint:
+                state_dict = checkpoint[key]
+                break
+
+        if state_dict is None:
+            state_dict = checkpoint
+    else:
+        state_dict = checkpoint
+
+    # =========================================================
+    # REMOVE "module."
+    # =========================================================
+    clean_state_dict = {}
+
+    for k, v in state_dict.items():
+        name = k.replace("module.", "") if k.startswith("module.") else k
+        clean_state_dict[name] = v
+
+    # =========================================================
+    # LOAD MODEL WEIGHT
+    # =========================================================
+    missing_keys, unexpected_keys = model.load_state_dict(
+        clean_state_dict,
+        strict=False
+    )
+
+    if len(missing_keys) > 0 and logger:
+        logger.warning(
+            f"⚠️ Thiếu {len(missing_keys)} keys trong weights!"
+        )
+
+    if len(unexpected_keys) > 0 and logger:
+        logger.warning(
+            f"⚠️ Thừa {len(unexpected_keys)} keys không khớp mô hình!"
+        )
+
+    # =========================================================
+    # CHỈ LOAD OPTIMIZER KHI RESUME TRAINING
+    # =========================================================
+    if (
+        optimizer is not None
+        and isinstance(checkpoint, dict)
+        and 'optimizer_state_dict' in checkpoint
+    ):
+        try:
+            optimizer.load_state_dict(
+                checkpoint['optimizer_state_dict']
+            )
+        except Exception as e:
+            if logger:
+                logger.warning(
+                    f"⚠️ Không thể khôi phục optimizer state: {e}"
+                )
+
+    # =========================================================
+    # LOAD SCALER KHI RESUME TRAINING
+    # =========================================================
+    if (
+        scaler is not None
+        and isinstance(checkpoint, dict)
+        and 'scaler_state_dict' in checkpoint
+    ):
+        try:
+            scaler.load_state_dict(
+                checkpoint['scaler_state_dict']
+            )
+        except Exception as e:
+            if logger:
+                logger.warning(
+                    f"⚠️ Không thể khôi phục scaler state: {e}"
+                )
+
+    start_epoch = (
+        checkpoint.get('epoch', -1) + 1
+        if isinstance(checkpoint, dict)
+        else 0
+    )
+
+    best_val_acc = (
+        checkpoint.get('best_val_acc', 0.0)
+        if isinstance(checkpoint, dict)
+        else 0.0
+    )
+
+    del checkpoint
+    del state_dict
+    del clean_state_dict
+
+    return model, start_epoch, best_val_acc
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
 
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
-    if epoch < 40:
+    if epoch < 5:
+        return base_lr * (epoch + 1) / 5
+    elif epoch < 30:
         lr = base_lr
-    elif epoch < 70:
+    elif epoch < 50:
         lr = base_lr * 0.1
-    elif epoch < 90:
+    elif epoch < 75:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
 
     return max(lr, min_lr)
-
 # ======================================================================== TRAIN AND VAL ===============================================
 
 def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logger):
@@ -378,7 +519,8 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
         )
 
     best_checkpoint_path = os.path.join(folder_path, f"{model_name}_best.pth")
-
+    patience_counter = 0
+    early_stop_patience=args.early_stop_patience
     for epoch in range(start_epoch, args.num_epoch):
         current_lr = get_lr(epoch, base_lr)
         for param_group in optimizer.param_groups:
@@ -458,12 +600,20 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
             'scaler_state_dict': scaler.state_dict(),
             'best_val_acc': max(best_val_acc, val_acc),
         }
-
         if val_acc > best_val_acc:
             best_val_acc = val_acc
+            patience_counter = 0
             checkpoint_state['best_val_acc'] = best_val_acc
             torch.save(checkpoint_state, best_checkpoint_path)
             logger.info(f"✓ Saved best model: Val Acc={best_val_acc:.4f} at epoch {epoch}")
+        else:
+            patience_counter += 1
+            if patience_counter >= early_stop_patience:
+                logger.info(f"⏹ Early stopping tại epoch {epoch} "
+                            f"(không cải thiện sau {early_stop_patience} epoch, best={best_val_acc:.4f})")
+                break
+
+
 
     logger.info("Evaluating Best Model on TEST Set...")
     if os.path.exists(best_checkpoint_path):
@@ -512,10 +662,10 @@ if __name__ == "__main__":
         "LIGHT_HYBRIC_MAMBA",
         "MEDIUM_HYBRIC_MAMBA",
         "HEAVY_HYBRIC_MAMBA",
+        "SUPER_MAMBA_DEPT_3",
         "SUPER_MAMBA_DEPT_4",
         "VGG16",
         "RESNET18",
-        "SUPER_MAMBA_DEPT_3",
         "VIT_B",
         "VIT_S",
         "EFFICIENTNET_B0",
@@ -524,21 +674,30 @@ if __name__ == "__main__":
     ]
     datasetname = [
         "German",
-        "Belgium"
+        "Belgium",
+        "German_51k",
+        "NEU-DET_surface-dec"
     ]
     datasetpath=[
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
-        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS"
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
+        "/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan"
     ]
-    #8
+
     args = get_args()
-    for i in range(6,12,1):
+    for i in range(5,12,1):
         args.__setattr__("model_name", modelname[i])
-        args.__setattr__("dataset_name", datasetname[1])
-        args.__setattr__("root_dataset_path", datasetpath[1])
+
+        args.__setattr__("dataset_name", datasetname[4])
+        args.__setattr__("root_dataset_path", datasetpath[4])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
-        args.__setattr__("picture_size", 32)
+        args.__setattr__("class_num", 43)
+        args.__setattr__("num_epoch", 100)
+
+        args.__setattr__("model_name", modelname[i])
 
         args.__setattr__("resume_path",
                          os.path.join(

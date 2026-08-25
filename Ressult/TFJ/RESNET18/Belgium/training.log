@@ -143,13 +143,3 @@
 2026-08-24 23:07:50 [INFO] 
 [RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/RESNET18/Belgium/RESNET18_best.pth
 2026-08-24 23:07:51 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9944 | F1-Macro: 0.9906 | F1-Weighted: 0.9943
-2026-08-24 23:07:55 [INFO] Dataset: Belgium | Số nhãn (classes): 62 | Tổng số ảnh: 7095
-2026-08-24 23:07:55 [INFO] Dữ liệu đã chia -> Train (70%): 4966 | Val (15%): 1064 | Test (15%): 1065
-2026-08-24 23:07:55 [INFO] 
-🔍 Kiểm tra phân bố class trong batch:
-2026-08-24 23:07:56 [INFO]   Batch 0: 32 classes (first 5: [4, 6, 7, 13, 14])
-2026-08-24 23:07:56 [INFO]   Batch 1: 27 classes (first 5: [0, 1, 5, 7, 13])
-2026-08-24 23:07:56 [INFO]   Batch 2: 29 classes (first 5: [7, 8, 9, 11, 14])
-2026-08-24 23:07:56 [INFO]   Batch 3: 26 classes (first 5: [0, 7, 12, 14, 17])
-2026-08-24 23:07:56 [INFO]   Batch 4: 29 classes (first 5: [1, 4, 7, 8, 13])
-2026-08-24 23:07:56 [INFO] ✅ Shuffle tốt! Trung bình 28.6 classes/batch

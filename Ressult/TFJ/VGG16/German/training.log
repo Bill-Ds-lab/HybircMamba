@@ -1,0 +1,32 @@
+2026-08-25 13:38:06 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-25 13:38:06 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-25 13:38:06 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-25 13:38:08 [INFO]   Batch 0: 14 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 13:38:08 [INFO]   Batch 1: 14 classes (first 5: [1, 4, 6, 8, 9])
+2026-08-25 13:38:08 [INFO]   Batch 2: 12 classes (first 5: [1, 2, 4, 5, 6])
+2026-08-25 13:38:08 [INFO]   Batch 3: 11 classes (first 5: [3, 4, 5, 8, 10])
+2026-08-25 13:38:08 [INFO]   Batch 4: 10 classes (first 5: [4, 5, 10, 11, 12])
+2026-08-25 13:38:08 [INFO] ✅ Shuffle tốt! Trung bình 12.2 classes/batch
+2026-08-25 13:38:10 [INFO] ============================================================
+2026-08-25 13:38:10 [INFO] Starting training: VGG16
+2026-08-25 13:38:10 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-25 13:38:10 [INFO] Device: cuda
+2026-08-25 13:38:10 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-25 13:38:10 [INFO] ============================================================
+2026-08-25 13:38:35 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-25 13:38:36 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-25 13:38:36 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-25 13:38:36 [INFO]   Batch 0: 28 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-25 13:38:36 [INFO]   Batch 1: 25 classes (first 5: [1, 2, 4, 5, 6])
+2026-08-25 13:38:36 [INFO]   Batch 2: 28 classes (first 5: [1, 2, 4, 5, 6])
+2026-08-25 13:38:36 [INFO]   Batch 3: 27 classes (first 5: [1, 2, 5, 7, 8])
+2026-08-25 13:38:36 [INFO]   Batch 4: 33 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-25 13:38:36 [INFO] ✅ Shuffle tốt! Trung bình 28.2 classes/batch
+2026-08-25 13:38:37 [INFO] ============================================================
+2026-08-25 13:38:37 [INFO] Starting training: VGG16
+2026-08-25 13:38:37 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-25 13:38:37 [INFO] Device: cuda
+2026-08-25 13:38:37 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-25 13:38:37 [INFO] ============================================================

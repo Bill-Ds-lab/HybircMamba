@@ -47,7 +47,14 @@ class TrafficSignDataset(Dataset):
         dn = dataset_name.lower()
         if dn in ["german_csv", "csv"]:
             self.samples, self.class_to_idx = self._scan_csv(root, csv_filename)
-        elif dn in ["belgium", "belgium_split", "belgium_1t1t", "belgium_1train_1test"]:
+        elif dn in ["belgium",
+                "belgium_split",
+                "belgium_1t1t",
+                "belgium_1train_1test",
+                "german_51k",
+                "neu-det",
+                "neu-det_surface-dec"
+            ]:
             self.samples, self.class_to_idx = self._scan_belgium(root)
         else:  # "german", "folders", "default"
             self.samples, self.class_to_idx = self._scan_folder(root)

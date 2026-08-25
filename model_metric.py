@@ -1,9 +1,11 @@
-
+import gc
 import time
 import numpy as np
+import timm
 import torch
 import torch.nn as nn
 
+# Giữ nguyên các import mô hình của bạn
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
 
@@ -13,7 +15,6 @@ def auto_device() -> str:
 
 
 def _friendly_cuda_error(e: Exception, device: str) -> str:
-
     msg = str(e)
     if "is_cuda" in msg or "CUDA" in msg:
         return (
@@ -29,20 +30,17 @@ def _friendly_cuda_error(e: Exception, device: str) -> str:
 # 1. SỐ LƯỢNG THAM SỐ
 # --------------------------------------------------------------------------- #
 def count_parameters(model: nn.Module) -> dict:
-    """
-    Trả về tổng số tham số, số tham số trainable, và kích thước ước tính (MB, float32).
-    """
+    """Trả về tổng số tham số, số tham số trainable, và kích thước ước tính (MB, float32)."""
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    size_mb = total * 4 / (1024 ** 2)  # float32 = 4 bytes
+    size_mb = total * 4 / (1024**2)  # float32 = 4 bytes
 
-    result = {
+    return {
         "total_params": total,
         "trainable_params": trainable,
         "size_mb": size_mb,
-        "size_m": total / 1e6,  # đơn vị "M" như trong paper (90k -> 0.09M)
+        "size_m": total / 1e6,
     }
-    return result
 
 
 def count_by_top_module(model: nn.Module) -> dict:
@@ -57,33 +55,29 @@ def count_by_top_module(model: nn.Module) -> dict:
 # --------------------------------------------------------------------------- #
 # 2. FLOPs
 # --------------------------------------------------------------------------- #
-def count_flops(model: nn.Module, input_size=(1, 3, 32, 32), device="cpu") -> dict:
-    """
-    Tính FLOPs của model. Ưu tiên dùng `thop`, nếu không có thì thử `fvcore`.
-    Trả về dict gồm flops (đơn vị FLOPs thô) và các đơn vị quy đổi (K/M/G).
-
-    Lưu ý: thop trả về "MACs" nhưng thực chất báo là flops (tuỳ version),
-    một số paper quy ước FLOPs = 2 * MACs -> tự kiểm tra lại nếu cần khớp
-    số liệu công bố.
-    """
+def count_flops(
+    model: nn.Module, input_size=(1, 3, 32, 32), device="cpu"
+) -> dict:
+    """Tính FLOPs của model bằng `thop` hoặc `fvcore`."""
     model = model.to(device).eval()
     dummy_input = torch.randn(*input_size).to(device)
 
     try:
         from thop import profile
+
         flops, params = profile(model, inputs=(dummy_input,), verbose=False)
         method = "thop"
     except Exception as e1:
         try:
             from fvcore.nn import FlopCountAnalysis
+
             fca = FlopCountAnalysis(model, dummy_input)
             flops = fca.total()
             params = sum(p.numel() for p in model.parameters())
             method = "fvcore"
         except Exception as e2:
             raise RuntimeError(
-                f"Không thể tính FLOPs. Lỗi thop: {e1}; Lỗi fvcore: {e2}. "
-                f"Hãy cài: pip install thop fvcore --break-system-packages"
+                f"Không thể tính FLOPs. Lỗi thop: {e1}; Lỗi fvcore: {e2}."
             )
 
     return {
@@ -106,26 +100,20 @@ def measure_inference_time(
     n_warmup=100,
     n_runs=800,
 ) -> dict:
-    """
-    Đo thời gian suy luận trung bình cho 1 batch (mặc định batch=1, giống
-    "single-frame inference time" trong paper).
-
-    Trên GPU dùng torch.cuda.Event để đo chính xác (tránh nhiễu do
-    Python/CUDA kernel-launch overhead so với time.perf_counter thô).
-    """
+    """Đo thời gian suy luận trung bình cho 1 batch."""
     model = model.to(device).eval()
     dummy_input = torch.randn(*input_size).to(device)
 
     if device == "cuda":
         torch.backends.cudnn.benchmark = True
 
-    # warm-up để tránh sai lệch do khởi tạo CUDA context / cache / cuDNN autotune
     with torch.no_grad():
         for _ in range(n_warmup):
             try:
                 _ = model(dummy_input)
             except RuntimeError as e:
                 raise RuntimeError(_friendly_cuda_error(e, device)) from e
+
     if device == "cuda":
         torch.cuda.synchronize()
 
@@ -162,12 +150,9 @@ def measure_inference_time(
 # --------------------------------------------------------------------------- #
 # 4. ACCURACY + CONFUSION MATRIX
 # --------------------------------------------------------------------------- #
-def evaluate_accuracy(model: nn.Module, dataloader, device="cpu", class_names=None):
-    """
-    Chạy model qua toàn bộ dataloader (test set) và tính accuracy + confusion matrix.
-
-    dataloader: phải trả về (images, labels) theo batch.
-    """
+def evaluate_accuracy(
+    model: nn.Module, dataloader, device="cpu", class_names=None
+):
     from sklearn.metrics import accuracy_score, confusion_matrix
 
     model = model.to(device).eval()
@@ -194,13 +179,18 @@ def evaluate_accuracy(model: nn.Module, dataloader, device="cpu", class_names=No
 
 
 def plot_confusion_matrix(cm, class_names=None, save_path=None):
-    """Vẽ confusion matrix bằng seaborn (giống Fig.6-8 trong paper)."""
     import matplotlib.pyplot as plt
     import seaborn as sns
 
     plt.figure(figsize=(10, 8))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
-                xticklabels=class_names, yticklabels=class_names)
+    sns.heatmap(
+        cm,
+        annot=True,
+        fmt="d",
+        cmap="Blues",
+        xticklabels=class_names,
+        yticklabels=class_names,
+    )
     plt.xlabel("Predicted")
     plt.ylabel("True")
     plt.title("Confusion Matrix")
@@ -214,48 +204,36 @@ def plot_confusion_matrix(cm, class_names=None, save_path=None):
 # 5. INFORMATION DENSITY (IDS)
 # --------------------------------------------------------------------------- #
 def compute_ids(accuracy: float, params_million: float) -> float:
-    """
-    IDS = ACC(%) / params(M)
-
-    Lưu ý quan trọng: công thức gốc trong paper MambaTSR ghi là
-    IDS = ACC*100/np với "np là tham số tính theo MB", NHƯNG khi đối
-    chiếu ngược lại số liệu thực tế họ công bố (VD: German, ACC=99.00,
-    params~0.088M -> IDS=1123.72), số liệu chỉ khớp khi np là số tham số
-    tính theo ĐƠN VỊ TRIỆU (M), không phải MB thực tế (byte). Vì vậy hàm
-    này dùng params tính theo M để tái tạo đúng số liệu paper.
-
-    accuracy: đơn vị %, ví dụ 99.0 (không phải 0.99)
-    params_million: số tham số / 1e6 (dùng field 'size_m' từ count_parameters)
-    """
-    return accuracy / params_million
+    return accuracy / params_million if params_million > 0 else 0.0
 
 
 # --------------------------------------------------------------------------- #
-# 6. ROBUSTNESS TEST (dim / exposure / noise / rain)
+# 6. ROBUSTNESS TEST
 # --------------------------------------------------------------------------- #
 def adjust_gamma(image: np.ndarray, gamma: float) -> np.ndarray:
-    """Mô phỏng cảnh tối/sáng bằng gamma correction. image: HWC, uint8 hoặc float [0,255]."""
     inv = 1.0 if gamma == 0 else gamma
     img = np.clip(image, 0, 255).astype(np.float32)
     out = np.power(img / 255.0, inv) * 255.0
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
-def add_gaussian_noise(image: np.ndarray, mean: float = 0, std: float = 25) -> np.ndarray:
-    """Thêm nhiễu Gaussian cộng tính."""
+def add_gaussian_noise(
+    image: np.ndarray, mean: float = 0, std: float = 25
+) -> np.ndarray:
     img = image.astype(np.float32)
     noise = np.random.normal(mean, std, img.shape)
     out = img + noise
     return np.clip(out, 0, 255).astype(np.uint8)
 
 
-def add_rain_effect(image: np.ndarray, size_factor: float = 3.0,
-                     angle_range=(-60, 60), density: float = 0.02) -> np.ndarray:
-    """
-    Mô phỏng hiệu ứng giọt mưa đơn giản bằng các vệt trắng ngẫu nhiên.
-    (Bản đơn giản hoá; paper gốc dùng thuật toán riêng, xem repo MambaTSR/Rain).
-    """
+def add_rain_effect(
+    image: np.ndarray,
+    size_factor: float = 3.0,
+    angle_range=(-60, 60),
+    density: float = 0.02,
+) -> np.ndarray:
     import cv2
+
     img = image.copy()
     h, w = img.shape[:2]
     n_drops = int(h * w * density)
@@ -272,8 +250,12 @@ def add_rain_effect(image: np.ndarray, size_factor: float = 3.0,
     return img
 
 
-def robustness_test(model: nn.Module, dataloader_factory, device="cpu",
-                     scenarios: dict = None) -> dict:
+def robustness_test(
+    model: nn.Module,
+    dataloader_factory,
+    device="cpu",
+    scenarios: dict = None,
+) -> dict:
     if scenarios is None:
         scenarios = {
             "dim_gamma_0.5": lambda img: adjust_gamma(img, 0.5),
@@ -282,9 +264,15 @@ def robustness_test(model: nn.Module, dataloader_factory, device="cpu",
             "exposure_gamma_1.8": lambda img: adjust_gamma(img, 1.8),
             "rain_s3": lambda img: add_rain_effect(img, size_factor=3.0),
             "rain_s7": lambda img: add_rain_effect(img, size_factor=7.0),
-            "noise_mean0": lambda img: add_gaussian_noise(img, mean=0, std=25),
-            "noise_mean-120": lambda img: add_gaussian_noise(img, mean=-120, std=25),
-            "noise_mean120": lambda img: add_gaussian_noise(img, mean=120, std=25),
+            "noise_mean0": lambda img: add_gaussian_noise(
+                img, mean=0, std=25
+            ),
+            "noise_mean-120": lambda img: add_gaussian_noise(
+                img, mean=-120, std=25
+            ),
+            "noise_mean120": lambda img: add_gaussian_noise(
+                img, mean=120, std=25
+            ),
         }
 
     results = {}
@@ -297,18 +285,16 @@ def robustness_test(model: nn.Module, dataloader_factory, device="cpu",
 
 
 # --------------------------------------------------------------------------- #
-# 7. GRAD-CAM (activation map)
+# 7. GRAD-CAM
 # --------------------------------------------------------------------------- #
-def plot_gradcam(model: nn.Module, target_layer, image_tensor: torch.Tensor,
-                  original_image: np.ndarray, device="cpu", save_path=None):
-    """
-    Vẽ activation map bằng Grad-CAM (giống Fig.14 trong paper).
-
-    target_layer: layer cụ thể trong model để trích xuất gradient
-                  (thường là layer conv/mamba cuối cùng trước classifier).
-    image_tensor: ảnh đã qua preprocess, shape (1, C, H, W)
-    original_image: ảnh gốc dạng numpy HWC, float [0,1], dùng để overlay
-    """
+def plot_gradcam(
+    model: nn.Module,
+    target_layer,
+    image_tensor: torch.Tensor,
+    original_image: np.ndarray,
+    device="cpu",
+    save_path=None,
+):
     from pytorch_grad_cam import GradCAM
     from pytorch_grad_cam.utils.image import show_cam_on_image
     import matplotlib.pyplot as plt
@@ -318,7 +304,9 @@ def plot_gradcam(model: nn.Module, target_layer, image_tensor: torch.Tensor,
 
     cam = GradCAM(model=model, target_layers=[target_layer])
     grayscale_cam = cam(input_tensor=image_tensor)[0]
-    visualization = show_cam_on_image(original_image, grayscale_cam, use_rgb=True)
+    visualization = show_cam_on_image(
+        original_image, grayscale_cam, use_rgb=True
+    )
 
     plt.imshow(visualization)
     plt.axis("off")
@@ -332,17 +320,13 @@ def plot_gradcam(model: nn.Module, target_layer, image_tensor: torch.Tensor,
 # --------------------------------------------------------------------------- #
 # 8. BÁO CÁO TỔNG HỢP
 # --------------------------------------------------------------------------- #
-def full_report(model: nn.Module, model_name: str = "Model",
-                 input_size=(1, 3, 32, 32), device=None,
-                 accuracy: float = None) -> dict:
-    """
-    Chạy các phép đo cơ bản (params, FLOPs, inference time) và in báo cáo.
-    accuracy: nếu đã có sẵn (từ evaluate_accuracy), sẽ tính luôn IDS.
-
-    device: nếu để None sẽ tự chọn 'cuda' nếu máy có GPU, ngược lại 'cpu'.
-            Với các model Mamba dùng CUDA kernel (selective_scan_cuda_core),
-            BẮT BUỘC phải chạy trên 'cuda', không dùng được 'cpu'.
-    """
+def full_report(
+    model: nn.Module,
+    model_name: str = "Model",
+    input_size=(1, 3, 32, 32),
+    device=None,
+    accuracy: float = None,
+) -> dict:
     if device is None:
         device = auto_device()
 
@@ -353,8 +337,10 @@ def full_report(model: nn.Module, model_name: str = "Model",
     # 1. Params
     params_info = count_parameters(model)
     print(f"\n[1] Tham số:")
-    print(f"    Tổng           : {params_info['total_params']:,} "
-          f"({params_info['size_m']:.3f} M)")
+    print(
+        f"    Tổng           : {params_info['total_params']:,} "
+        f"({params_info['size_m']:.3f} M)"
+    )
     print(f"    Trainable      : {params_info['trainable_params']:,}")
     print(f"    Kích thước     : {params_info['size_mb']:.3f} MB")
 
@@ -362,24 +348,36 @@ def full_report(model: nn.Module, model_name: str = "Model",
     if breakdown:
         print(f"    Phân bố module :")
         for name, n in sorted(breakdown.items(), key=lambda kv: -kv[1]):
-            pct = 100 * n / params_info["total_params"] if params_info["total_params"] else 0
+            pct = (
+                100 * n / params_info["total_params"]
+                if params_info["total_params"]
+                else 0
+            )
             print(f"      - {name:<20s}: {n:>10,} ({pct:5.1f}%)")
 
     # 2. FLOPs
     try:
         flops_info = count_flops(model, input_size=input_size, device=device)
         print(f"\n[2] FLOPs:")
-        print(f"    {flops_info['flops_m']:.3f} M  (phương pháp: {flops_info['method']})")
+        print(
+            f"    {flops_info['flops_m']:.3f} M  (phương pháp: {flops_info['method']})"
+        )
     except Exception as e:
         flops_info = None
-        print(f"\n[2] FLOPs: Không tính được\n    {_friendly_cuda_error(e, device)}")
+        print(
+            f"\n[2] FLOPs: Không tính được\n    {_friendly_cuda_error(e, device)}"
+        )
 
     # 3. Inference time
     try:
-        time_info = measure_inference_time(model, input_size=input_size, device=device)
+        time_info = measure_inference_time(
+            model, input_size=input_size, device=device
+        )
         print(f"\n[3] Thời gian suy luận ({device}):")
-        print(f"    Trung bình     : {time_info['mean_ms']:.3f} ms "
-              f"(± {time_info['std_ms']:.3f}, {time_info['n_runs']} lần chạy)")
+        print(
+            f"    Trung bình     : {time_info['mean_ms']:.3f} ms "
+            f"(± {time_info['std_ms']:.3f}, {time_info['n_runs']} lần chạy)"
+        )
     except RuntimeError as e:
         time_info = None
         print(f"\n[3] Thời gian suy luận: LỖI\n    {e}")
@@ -401,81 +399,207 @@ def full_report(model: nn.Module, model_name: str = "Model",
     }
 
 
+# --------------------------------------------------------------------------- #
+# 9. KHỞI TẠO MÔ HÌNH (BUILD MODEL)
+# --------------------------------------------------------------------------- #
+def build_Model(name, num_classes=43, pretrained=False):
+    """Hàm tạo mô hình theo tên tiêu chuẩn."""
+    if name == "LIGHT_HYBRIC_MAMBA":
+        return HybricMamba(
+            dims=(3, 16, 32, 56, 96),
+            num_classes=num_classes,
+            mbconv_expand_ratio=4,
+            ssm_d_state=8,
+            mamba_blocks=(1, 1),
+            ssm_frac=0.5,
+            conv_frac=0.3,
+            use_aux=True,
+        )
+    elif name == "MEDIUM_HYBRIC_MAMBA":
+        return HybricMamba(
+            dims=(3, 24, 48, 80, 128),
+            num_classes=num_classes,
+            mbconv_expand_ratio=4,
+            ssm_d_state=12,
+            ssm_ratio=1.5,
+            mamba_blocks=(2, 2),
+            cnn_blocks=(1, 2),
+            ssm_frac=0.6,
+            conv_frac=0.25,
+            use_aux=True,
+        )
+    elif name == "HEAVY_HYBRIC_MAMBA":
+        return HybricMamba(
+            dims=(3, 32, 64, 112, 176),
+            num_classes=num_classes,
+            mbconv_expand_ratio=6,
+            ssm_d_state=16,
+            ssm_ratio=2.0,
+            mamba_blocks=(2, 3),
+            cnn_blocks=(2, 2),
+            ssm_frac=0.7,
+            conv_frac=0.2,
+            use_aux=True,
+        )
+    elif name == "SUPER_MAMBA_DEPT_4":
+        return Super_Mamba(dims=3, depth=4, num_classes=num_classes)
+    elif name == "SUPER_MAMBA_DEPT_3":
+        return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
+
+    # 10 Mô hình Benchmark chuẩn
+    elif name in ["VGG16", "VGG-16"]:
+        return timm.create_model(
+            "vgg16", pretrained=pretrained, num_classes=num_classes
+        )
+    elif name in ["RESNET18", "ResNet18"]:
+        return timm.create_model(
+            "resnet18", pretrained=pretrained, num_classes=num_classes
+        )
+    elif name in ["VIT_B", "ViT-B"]:
+        return timm.create_model(
+            "vit_base_patch16_224",
+            pretrained=pretrained,
+            num_classes=num_classes,
+            img_size=32,
+        )
+    elif name in ["VIT_S", "ViT-S"]:
+        return timm.create_model(
+            "vit_small_patch16_224",
+            pretrained=pretrained,
+            num_classes=num_classes,
+            img_size=32,
+        )
+    elif name in ["EFFICIENTNET_B0", "EfficientNet-B0"]:
+        return timm.create_model(
+            "efficientnet_b0", pretrained=pretrained, num_classes=num_classes
+        )
+    elif name in ["MOBILENETV3_SMALL", "MobileNetV3-Small"]:
+        return timm.create_model(
+            "mobilenetv3_small_100",
+            pretrained=pretrained,
+            num_classes=num_classes,
+        )
+    elif name in ["GHOSTNET", "GhostNet"]:
+        return timm.create_model(
+            "ghostnet_100", pretrained=pretrained, num_classes=num_classes
+        )
+    else:
+        raise ValueError(f"Tên mô hình '{name}' không tồn tại.")
+
+
+# --------------------------------------------------------------------------- #
+# MAIN BENCHMARK LOOP
+# --------------------------------------------------------------------------- #
 if __name__ == "__main__":
     device = auto_device()
+    num_classes = 43
+    input_size = (1, 3, 32, 32)
+
     print("=" * 80)
-    print(f"BẮT ĐẦU BENCHMARK TRÊN DEVICE: {device}")
+    print(f"BẮT ĐẦU BENCHMARK TOÀN BỘ MÔ HÌNH TRÊN DEVICE: {device}")
     print("=" * 80)
 
-    models_dict = {
-        "Light_HybricMamba": (
-            HybricMamba(
-                dims=(3, 16, 32, 56, 96),
-                num_classes=43,
-                mbconv_expand_ratio=4,
-                ssm_d_state=8,
-                mamba_blocks=(1, 1),
-                ssm_frac=0.5,
-                conv_frac=0.3,
-                use_aux=True,
-            ),
-            97.46,
-        ),
-        "Medium_HybricMamba": (
-            HybricMamba(
-                dims=(3, 24, 48, 80, 128),
-                num_classes=43,
-                mbconv_expand_ratio=4,
-                ssm_d_state=12,
-                ssm_ratio=1.5,
-                mamba_blocks=(2, 2),
-                cnn_blocks=(1, 2),
-                ssm_frac=0.6,
-                conv_frac=0.25,
-                use_aux=True,
-            ),
-            97.86,
-        ),
-        "Heavy_HybricMamba": (
-            HybricMamba(
-                dims=(3, 32, 64, 112, 176),
-                num_classes=43,
-                mbconv_expand_ratio=6,
-                ssm_d_state=16,
-                ssm_ratio=2.0,
-                mamba_blocks=(2, 3),
-                cnn_blocks=(2, 2),
-                ssm_frac=0.7,
-                conv_frac=0.2,
-                use_aux=True,
-            ),
-            98.55,
-        ),
-        "SuperMamba_dim3": (Super_Mamba(dims=3, depth=3, num_classes=43), 98.06),
-        "SuperMamba_dim4": (Super_Mamba(dims=3, depth=4, num_classes=43), 98.43),
+    # Danh sách tất cả các mô hình trong build_Model và Accuracy tương ứng (nếu có)
+    # Các mô hình benchmark nếu chưa có độ chính xác cụ thể có thể để None
+    target_models = {
+        "LIGHT_HYBRIC_MAMBA": 97.46,
+        "MEDIUM_HYBRIC_MAMBA": 97.86,
+        "HEAVY_HYBRIC_MAMBA": 98.55,
+        "SUPER_MAMBA_DEPT_3": 98.06,
+        "SUPER_MAMBA_DEPT_4": 98.43,
+        "VGG16": None,
+        "RESNET18": None,
+        "VIT_B": None,
+        "VIT_S": None,
+        "EFFICIENTNET_B0": None,
+        "MOBILENETV3_SMALL": None,
+        "GHOSTNET": None,
     }
 
     final_results = {}
+    reports = {}
 
-    for name, (model, acc) in models_dict.items():
-        full_report(model, model_name=name, accuracy=acc, device=device)
+    for model_name, acc in target_models.items():
+        print(f"\n>>> Đang thực thi benchmark cho: {model_name} ...")
 
-        latencies = []
-        for _ in range(10):
-            t_info = measure_inference_time(model, device=device, n_warmup=50, n_runs=400)
-            latencies.append(t_info["median_ms"])
-            time.sleep(1)
+        try:
+            # 1. Khởi tạo mô hình
+            model = build_Model(
+                model_name, num_classes=num_classes, pretrained=False
+            )
 
-        final_results[name] = latencies
+            # 2. Chạy báo cáo tổng quan (Params, FLOPs, Single Inference, IDS)
+            rep = full_report(
+                model,
+                model_name=model_name,
+                input_size=input_size,
+                device=device,
+                accuracy=acc,
+            )
+            reports[model_name] = rep
 
-        time.sleep(10)
+            # 3. Đo độ trễ suy luận nhiều lần (10 runs x 400 iterations)
+            latencies = []
+            for _ in range(10):
+                t_info = measure_inference_time(
+                    model,
+                    input_size=input_size,
+                    device=device,
+                    n_warmup=30,
+                    n_runs=200,
+                )
+                latencies.append(t_info["median_ms"])
+                time.sleep(0.2)
 
-    # 3. In kết quả tổng hợp
-    print("\n" + "=" * 80)
-    print("TỔNG HỢP KẾT QUẢ SUY LUẬN (MEDIAN 10 LẦN THỬ NGHIỆM)")
-    print("=" * 80)
-    for name, times in final_results.items():
-        print(
-            f"{name:<20s} - median: {np.median(times):.3f} ms "
-            f"(min={min(times):.3f}, max={max(times):.3f})"
+            final_results[model_name] = latencies
+
+        except Exception as e:
+            print(f"❌ XẢY RA LỖI KHI ĐO MÔ HÌNH {model_name}: {e}")
+            final_results[model_name] = None
+
+        finally:
+            # Dọn dẹp GPU memory tránh OOM giữa các mô hình
+            if "model" in locals():
+                del model
+            if device == "cuda":
+                torch.cuda.empty_cache()
+            gc.collect()
+
+        time.sleep(1)
+
+    # ----------------------------------------------------------------------- #
+    # TỔNG HỢP KẾT QUẢ VÀ IN BẢNG BÁO CÁO
+    # ----------------------------------------------------------------------- #
+    print("\n" + "=" * 90)
+    print("TỔNG HỢP KẾT QUẢ BENCHMARK TOÀN BỘ MÔ HÌNH (LATENCY OVER 10 RUNS)")
+    print("=" * 90)
+    print(
+        f"{'Model Name':<22s} | {'Params (M)':<10s} | {'FLOPs (M)':<10s} | {'Median Latency (ms)':<20s} | {'IDS':<8s}"
+    )
+    print("-" * 90)
+
+    for name in target_models.keys():
+        times = final_results.get(name)
+        rep = reports.get(name, {})
+
+        params_m = (
+            f"{rep['params']['size_m']:.3f}M" if rep.get("params") else "N/A"
         )
+        flops_m = (
+            f"{rep['flops']['flops_m']:.2f}M" if rep.get("flops") else "N/A"
+        )
+        ids_str = f"{rep['ids']:.2f}" if rep.get("ids") is not None else "N/A"
+
+        if times:
+            med = np.median(times)
+            min_t = min(times)
+            max_t = max(times)
+            latency_str = f"{med:.3f} ms ({min_t:.3f} - {max_t:.3f})"
+        else:
+            latency_str = "FAILED"
+
+        print(
+            f"{name:<22s} | {params_m:<10s} | {flops_m:<10s} | {latency_str:<20s} | {ids_str:<8s}"
+        )
+
+    print("=" * 90)
