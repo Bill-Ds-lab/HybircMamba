@@ -157,7 +157,6 @@ def get_transforms(img_size=224):
 # ================================================================
 # WEBDATASET FORMAT DATASET
 # ================================================================
-
 class WebDatasetImageNet(Dataset):
     def __init__(self, root_path, split='train', transform=None, max_samples=None):
         self.root_path = root_path
@@ -165,31 +164,31 @@ class WebDatasetImageNet(Dataset):
         self.transform = transform
         self.samples = []
 
-        data_dir = os.path.join(root_path, split)
+        # 1. Tự động kiểm tra nếu Dataset là cấu trúc thư mục ảnh chuẩn (ImageFolder)
+        split_dir = os.path.join(root_path, split) if os.path.exists(os.path.join(root_path, split)) else root_path
+        if os.path.exists(split_dir):
+            subdirs = [d for d in os.listdir(split_dir) if os.path.isdir(os.path.join(split_dir, d))]
+            if len(subdirs) > 10:
+                from torchvision.datasets import ImageFolder
+                self.dataset = ImageFolder(root=split_dir, transform=transform)
+                self.use_image_folder = True
+                print(f"✅ Phát hiện ImageFolder tại {split_dir} với {len(self.dataset)} ảnh.")
+                return
+
+        self.use_image_folder = False
+
+        # 2. Xử lý dạng WebDataset (.tar / .idx)
+        data_dir = split_dir
         idx_dir = os.path.join(root_path, 'idx_files', split)
 
-        if not os.path.exists(data_dir):
-            raise FileNotFoundError(f"Không tìm thấy thư mục: {data_dir}")
-
-        all_files = os.listdir(data_dir)
-        shard_files = []
-
-        for f in all_files:
-            if not f.endswith('.idx') and not f.endswith('.tar'):
-                shard_files.append(os.path.join(data_dir, f))
+        shard_files = sorted(glob.glob(os.path.join(data_dir, '*.tar'))) + sorted(
+            glob.glob(os.path.join(data_dir, f'{split}-*')))
+        shard_files = [f for f in shard_files if not f.endswith('.idx')]
 
         if not shard_files:
-            shard_files = sorted(glob.glob(os.path.join(data_dir, '*.tar')))
+            raise FileNotFoundError(f"Không tìm thấy file .tar hoặc thư mục ảnh hợp lệ tại: {split_dir}")
 
-        if not shard_files:
-            shard_files = sorted(glob.glob(os.path.join(data_dir, f'{split}-*-of-*')))
-
-        if not shard_files:
-            raise FileNotFoundError(f"Không tìm thấy shard files trong {data_dir}")
-
-        print(f"📁 Found {len(shard_files)} shard files for {split}")
-
-        for shard_path in tqdm(shard_files, desc=f"Loading {split} shards"):
+        for shard_path in shard_files:
             shard_name = os.path.basename(shard_path)
             idx_path = os.path.join(idx_dir, f"{shard_name}.idx")
 
@@ -201,55 +200,49 @@ class WebDatasetImageNet(Dataset):
             if max_samples and len(self.samples) >= max_samples:
                 break
 
-        print(f"✅ Loaded {len(self.samples)} samples for {split}")
-
     def _load_from_idx(self, shard_path, idx_path):
-        offsets = []
         with open(idx_path, 'r') as f:
             for line in f:
-                if line.strip():
-                    parts = line.strip().split()
-                    if len(parts) >= 2:
-                        offset = int(parts[0])
-                        length = int(parts[1])
-                        offsets.append((offset, length))
-
-        for offset, length in offsets:
-            self.samples.append((shard_path, offset, length))
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    offset, length = int(parts[0]), int(parts[1])
+                    label = int(parts[2]) if len(parts) >= 3 else 0
+                    self.samples.append((shard_path, offset, length, label))
 
     def _load_from_tar(self, shard_path):
         try:
-            with tarfile.open(shard_path, 'r') as tar:
+            with tarfile.open(shard_path, 'r:*') as tar:
                 samples_dict = {}
                 for member in tar.getmembers():
-                    if member.isfile():
-                        name = member.name
-                        if '.' in name:
-                            key, ext = name.rsplit('.', 1)
-                            if key not in samples_dict:
-                                samples_dict[key] = {}
-                            samples_dict[key][ext.lower()] = member
+                    if member.isfile() and '.' in member.name:
+                        key, ext = member.name.rsplit('.', 1)
+                        samples_dict.setdefault(key, {})[ext.lower()] = member
 
                 for key, files in samples_dict.items():
                     if any(ext in files for ext in ['jpg', 'jpeg', 'png']):
                         self.samples.append((shard_path, key, files))
         except Exception as e:
-            print(f"⚠️ Lỗi đọc tar {shard_path}: {e}")
+            print(f"⚠️ Không thể đọc file tar {shard_path}: {e}")
 
     def __len__(self):
+        if self.use_image_folder:
+            return len(self.dataset)
         return len(self.samples)
 
     def __getitem__(self, idx):
+        if self.use_image_folder:
+            return self.dataset[idx]
+
         sample = self.samples[idx]
 
-        if len(sample) == 3 and isinstance(sample[1], int):
-            shard_path, offset, length = sample
-            image, label = self._read_from_offset(shard_path, offset, length)
+        if len(sample) == 4 and isinstance(sample[1], int):
+            shard_path, offset, length, label = sample
+            image = self._read_from_offset(shard_path, offset, length)
         else:
             shard_path, key, files = sample
             image, label = self._read_from_tar_entry(shard_path, files)
 
-        if self.transform:
+        if self.transform and image is not None:
             image = self.transform(image)
 
         return image, label
@@ -259,36 +252,15 @@ class WebDatasetImageNet(Dataset):
             with open(shard_path, 'rb') as f:
                 f.seek(offset)
                 data = f.read(length)
-
-            with tarfile.open(fileobj=io.BytesIO(data), mode='r') as tar:
-                image = None
-                label = 0
-
-                for member in tar.getmembers():
-                    if member.isfile():
-                        ext = member.name.split('.')[-1].lower()
-                        if ext in ['jpg', 'jpeg', 'png']:
-                            img_data = tar.extractfile(member).read()
-                            image = Image.open(io.BytesIO(img_data)).convert('RGB')
-                        elif ext in ['cls', 'txt', 'label']:
-                            label_data = tar.extractfile(member).read()
-                            label = int(label_data.decode().strip())
-
-                if image is None:
-                    raise ValueError(f"Không tìm thấy ảnh tại offset {offset}")
-
-                return image, label
-
-        except Exception as e:
-            print(f"⚠️ Lỗi đọc sample: {e}")
-            return Image.new('RGB', (224, 224), color='black'), 0
+            # Decode byte ảnh trực tiếp bằng PIL
+            return Image.open(io.BytesIO(data)).convert('RGB')
+        except Exception:
+            return Image.new('RGB', (224, 224), color='black')
 
     def _read_from_tar_entry(self, shard_path, files):
         try:
-            with tarfile.open(shard_path, 'r') as tar:
-                image = None
-                label = 0
-
+            with tarfile.open(shard_path, 'r:*') as tar:
+                image, label = None, 0
                 for ext, member in files.items():
                     if ext in ['jpg', 'jpeg', 'png']:
                         img_data = tar.extractfile(member).read()
@@ -296,17 +268,11 @@ class WebDatasetImageNet(Dataset):
                     elif ext in ['cls', 'txt', 'label']:
                         label_data = tar.extractfile(member).read()
                         label = int(label_data.decode().strip())
-
                 if image is None:
-                    raise ValueError("Không tìm thấy ảnh")
-
+                    image = Image.new('RGB', (224, 224), color='black')
                 return image, label
-
-        except Exception as e:
-            print(f"⚠️ Lỗi đọc sample: {e}")
+        except Exception:
             return Image.new('RGB', (224, 224), color='black'), 0
-
-
 # ================================================================
 # DATALOADER PREPARE
 # ================================================================
