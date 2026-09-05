@@ -24,6 +24,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.metrics import confusion_matrix, f1_score
+from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
@@ -171,7 +172,7 @@ def get_transforms(img_size=224):
 class ImageNetTFRecordDataset(Dataset):
     """Dataset đọc trực tiếp định dạng TFRecord trên Kaggle sang PyTorch Tensor"""
 
-    def __init__(self, root_dir, transform=None, max_samples=None, desc="Loading TFRecords"):
+    def __init__(self, root_dir=None, file_paths=None, transform=None, max_samples=None, desc="Loading TFRecords"):
         self.transform = transform
         self.samples = []
 
@@ -179,13 +180,16 @@ class ImageNetTFRecordDataset(Dataset):
             raise ImportError("Vui lòng cài đặt TensorFlow để giải mã TFRecords!")
 
         tfrec_files = []
-        for root, _, files in os.walk(root_dir):
-            for file in files:
-                if file.endswith('.tfrec') or file.endswith('.tfrecord'):
-                    tfrec_files.append(os.path.join(root, file))
+        if file_paths:
+            tfrec_files = file_paths
+        elif root_dir:
+            for root, _, files in os.walk(root_dir):
+                for file in files:
+                    if file.endswith('.tfrec') or file.endswith('.tfrecord'):
+                        tfrec_files.append(os.path.join(root, file))
 
         if not tfrec_files:
-            raise FileNotFoundError(f"Không tìm thấy file .tfrec/.tfrecord trong {root_dir}")
+            raise FileNotFoundError(f"Không tìm thấy file .tfrec/.tfrecord trong {root_dir or file_paths}")
 
         feature_description = {
             'image/encoded': tf.io.FixedLenFeature([], tf.string),
@@ -258,48 +262,77 @@ def setup_logging(folder_path):
 def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None):
     transform_train, transform_test = get_transforms(img_size)
 
-    # 📌 Tự động xác định đường dẫn train và validation
-    train_dir = os.path.join(root_path, "train")
-    val_dir = os.path.join(root_path, "validation")
+    # 📌 1. Quét toàn bộ file .tfrec / .tfrecord đệ quy trong root_path
+    all_tfrec_files = []
+    for root, _, files in os.walk(root_path):
+        for file in files:
+            if file.endswith('.tfrec') or file.endswith('.tfrecord'):
+                all_tfrec_files.append(os.path.join(root, file))
 
-    # Kiểm tra cấu trúc nếu thư mục gốc không chứa trực tiếp train/validation
-    if not os.path.exists(train_dir):
-        for root, dirs, _ in os.walk(root_path):
-            if "train" in dirs and "validation" in dirs:
-                train_dir = os.path.join(root, "train")
-                val_dir = os.path.join(root, "validation")
-                break
+    if not all_tfrec_files:
+        raise FileNotFoundError(f"Không tìm thấy file .tfrec/.tfrecord nào trong {root_path}")
 
-    if not os.path.exists(train_dir) or not os.path.exists(val_dir):
-        raise FileNotFoundError(f"Không tìm thấy tập train/validation hợp lệ trong {root_path}")
+    # 📌 2. Lọc file train và val dựa theo chuỗi trong đường dẫn
+    train_files = [f for f in all_tfrec_files if "train" in f.lower()]
+    val_files = [f for f in all_tfrec_files if "val" in f.lower()]
 
-    # Đọc trực tiếp dữ liệu tập Train và Validation
-    train_dataset = ImageNetTFRecordDataset(
-        root_dir=train_dir,
-        transform=transform_train,
-        desc="Loading Train TFRecords"
-    )
-    val_dataset = ImageNetTFRecordDataset(
-        root_dir=val_dir,
-        transform=transform_test,
-        desc="Loading Val TFRecords"
-    )
+    # 📌 3. Trường hợp không phân biệt được bằng đường dẫn -> Nạp toàn bộ và chia bằng train_test_split
+    if not train_files or not val_files:
+        log_msg = "⚠️ Không tách biệt được file train/val theo tên đường dẫn. Tiến hành đọc toàn bộ và chia tập..."
+        print(log_msg)
+        if logger: logger.warning(log_msg)
 
-    # Tập Test sử dụng chung bộ dữ liệu Validation
-    test_dataset = ImageNetTFRecordDataset(
-        root_dir=val_dir,
-        transform=transform_test,
-        desc="Loading Test TFRecords"
-    )
+        full_dataset = ImageNetTFRecordDataset(file_paths=all_tfrec_files, transform=None)
+        indices = list(range(len(full_dataset)))
+        labels = [full_dataset.samples[i][1] for i in indices]
+
+        train_idx, val_idx = train_test_split(
+            indices, test_size=0.10, random_state=seed, shuffle=True, stratify=labels
+        )
+
+        class CustomSubset(Dataset):
+            def __init__(self, dataset, indices, transform=None):
+                self.dataset = dataset
+                self.indices = indices
+                self.transform = transform
+
+            def __getitem__(self, idx):
+                img_bytes, label = self.dataset.samples[self.indices[idx]]
+                image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+                if self.transform:
+                    image = self.transform(image)
+                return image, label
+
+            def __len__(self):
+                return len(self.indices)
+
+        train_dataset = CustomSubset(full_dataset, train_idx, transform=transform_train)
+        val_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
+        test_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
+    else:
+        # 📌 Nạp trực tiếp theo danh sách file train/val đã tự động quét
+        train_dataset = ImageNetTFRecordDataset(
+            file_paths=train_files,
+            transform=transform_train,
+            desc="Loading Train TFRecords"
+        )
+        val_dataset = ImageNetTFRecordDataset(
+            file_paths=val_files,
+            transform=transform_test,
+            desc="Loading Val TFRecords"
+        )
+        test_dataset = ImageNetTFRecordDataset(
+            file_paths=val_files,
+            transform=transform_test,
+            desc="Loading Test TFRecords"
+        )
 
     num_classes = 1000
-
     log_msg = f"Dataset ImageNet-1k | Số nhãn: {num_classes} | Train: {len(train_dataset)} | Val: {len(val_dataset)}"
     print(log_msg)
     if logger:
         logger.info(log_msg)
 
-    # 📌 Giới hạn num_workers để tối ưu tài nguyên CPU Kaggle
     num_workers = min(4, os.cpu_count() or 2)
 
     train_loader = DataLoader(
