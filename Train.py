@@ -74,8 +74,8 @@ def build_Model(name, num_classes, pretrained=True):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.7,
-            conv_frac=0.2,
+            ssm_frac=0.3,
+            conv_frac=0.5,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -87,8 +87,8 @@ def build_Model(name, num_classes, pretrained=True):
             ssm_ratio=1.5,
             mamba_blocks=(2, 2),
             cnn_blocks=(1, 2),
-            ssm_frac=0.7,
-            conv_frac=0.2,
+            ssm_frac=0.3,
+            conv_frac=0.5,
             use_aux=True,
         )
     elif name == "HEAVY_HYBRIC_MAMBA":
@@ -100,8 +100,8 @@ def build_Model(name, num_classes, pretrained=True):
             ssm_ratio=2.0,
             mamba_blocks=(2, 3),
             cnn_blocks=(2, 2),
-            ssm_frac=0.7,
-            conv_frac=0.2,
+            ssm_frac=0.5,
+            conv_frac=0.3,
             use_aux=True,
         )
     elif name == "SUPER_MAMBA_DEPT_4":

@@ -28,10 +28,9 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-# Import TensorFlow để đọc file .tfrec / .tfrecord trên Kaggle
+# Import TensorFlow để đọc file TFRecord
 try:
     import tensorflow as tf
-
     TF_AVAILABLE = True
 except ImportError:
     TF_AVAILABLE = False
@@ -75,7 +74,6 @@ def get_args():
     parser.add_argument('--resume', action='store_true', default=False)
     parser.add_argument('--resume_path', default="", type=str)
 
-    # Giải quyết lỗi parse_args trên Jupyter Notebook
     args, _ = parser.parse_known_args()
     return args
 
@@ -125,17 +123,14 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
     elif name == "SUPER_MAMBA_DEPT_3":
         return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
 
-    # Benchmarks chuẩn cho ImageNet
     elif name in ["VGG16", "VGG-16"]:
         return timm.create_model('vgg16', pretrained=pretrained, num_classes=num_classes)
     elif name in ["RESNET18", "ResNet18"]:
         return timm.create_model('resnet18', pretrained=pretrained, num_classes=num_classes)
     elif name in ["VIT_B", "ViT-B"]:
-        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes,
-                                 img_size=img_size)
+        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes, img_size=img_size)
     elif name in ["VIT_S", "ViT-S"]:
-        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes,
-                                 img_size=img_size)
+        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes, img_size=img_size)
     elif name in ["EFFICIENTNET_B0", "EfficientNet-B0"]:
         return timm.create_model('efficientnet_b0', pretrained=pretrained, num_classes=num_classes)
     elif name in ["MOBILENETV3_SMALL", "MobileNetV3-Small"]:
@@ -170,7 +165,7 @@ def get_transforms(img_size=224):
 # ================================= DATASET LOADER DÀNH CHO TFRECORDS =================================
 
 class ImageNetTFRecordDataset(Dataset):
-    """Dataset đọc trực tiếp định dạng TFRecord trên Kaggle sang PyTorch Tensor"""
+    """Dataset đọc trực tiếp định dạng TFRecord không chứa đuôi mở rộng trên Kaggle"""
 
     def __init__(self, root_dir=None, file_paths=None, transform=None, max_samples=None, desc="Loading TFRecords"):
         self.transform = transform
@@ -184,27 +179,27 @@ class ImageNetTFRecordDataset(Dataset):
             tfrec_files = file_paths
         elif root_dir:
             for root, _, files in os.walk(root_dir):
+                if "idx_files" in root:
+                    continue
                 for file in files:
-                    if file.endswith('.tfrec') or file.endswith('.tfrecord'):
+                    if not file.endswith('.idx'):
                         tfrec_files.append(os.path.join(root, file))
 
         if not tfrec_files:
-            raise FileNotFoundError(f"Không tìm thấy file .tfrec/.tfrecord trong {root_dir or file_paths}")
+            raise FileNotFoundError(f"Không tìm thấy file TFRecord trong {root_dir or file_paths}")
 
         feature_description = {
             'image/encoded': tf.io.FixedLenFeature([], tf.string),
             'image/class/label': tf.io.FixedLenFeature([], tf.int64),
         }
 
-        # Đọc dữ liệu từ TFRecords
         raw_dataset = tf.data.TFRecordDataset(tfrec_files)
         for raw_record in tqdm(raw_dataset, desc=desc):
             example = tf.io.parse_single_example(raw_record, feature_description)
             img_bytes = example['image/encoded'].numpy()
             label = int(example['image/class/label'].numpy())
 
-            # Normalize label về khoảng 0-999
-            if label > 0 and label <= 1000:
+            if 0 < label <= 1000:
                 label -= 1
 
             self.samples.append((img_bytes, label))
@@ -262,23 +257,25 @@ def setup_logging(folder_path):
 def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None):
     transform_train, transform_test = get_transforms(img_size)
 
-    # 📌 1. Quét toàn bộ file .tfrec / .tfrecord đệ quy trong root_path
+    # 📌 1. Quét toàn bộ file TFRecord (Bỏ qua thư mục idx_files và file .idx)
     all_tfrec_files = []
     for root, _, files in os.walk(root_path):
+        if "idx_files" in root:
+            continue
         for file in files:
-            if file.endswith('.tfrec') or file.endswith('.tfrecord'):
+            if not file.endswith('.idx'):
                 all_tfrec_files.append(os.path.join(root, file))
 
     if not all_tfrec_files:
-        raise FileNotFoundError(f"Không tìm thấy file .tfrec/.tfrecord nào trong {root_path}")
+        raise FileNotFoundError(f"Không tìm thấy file TFRecord hợp lệ nào trong {root_path}")
 
-    # 📌 2. Lọc file train và val dựa theo chuỗi trong đường dẫn
-    train_files = [f for f in all_tfrec_files if "train" in f.lower()]
-    val_files = [f for f in all_tfrec_files if "val" in f.lower()]
+    # 📌 2. Phân loại file train và validation dựa vào đường dẫn/tên file
+    train_files = [f for f in all_tfrec_files if "/train" in f or "train-" in os.path.basename(f)]
+    val_files = [f for f in all_tfrec_files if "/validation" in f or "/val" in f or "val-" in os.path.basename(f) or "validation-" in os.path.basename(f)]
 
-    # 📌 3. Trường hợp không phân biệt được bằng đường dẫn -> Nạp toàn bộ và chia bằng train_test_split
+    # 📌 3. Trường hợp không phân biệt được bằng thư mục/tên file -> Tự động chia bằng train_test_split
     if not train_files or not val_files:
-        log_msg = "⚠️ Không tách biệt được file train/val theo tên đường dẫn. Tiến hành đọc toàn bộ và chia tập..."
+        log_msg = "⚠️ Không phân tách được tập train/val theo đường dẫn. Tiến hành đọc toàn bộ và tự động chia..."
         print(log_msg)
         if logger: logger.warning(log_msg)
 
@@ -310,7 +307,6 @@ def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None)
         val_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
         test_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
     else:
-        # 📌 Nạp trực tiếp theo danh sách file train/val đã tự động quét
         train_dataset = ImageNetTFRecordDataset(
             file_paths=train_files,
             transform=transform_train,
