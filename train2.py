@@ -53,7 +53,7 @@ def get_args():
 
     # 📌 Đường dẫn dataset ImageNet-1k TFRecords trên Kaggle
     parser.add_argument('--root_dataset_path',
-                        default="/kaggle/input/imagenet-1k-tfrecords-ilsvrc2012-tf2-helloworld",
+                        default="/kaggle/input/notebooks/hmendonca/imagenet-1k-tfrecords-ilsvrc2012-tf2-helloworld",
                         type=str)
 
     # 📌 Thư mục lưu checkpoint & logs trên Kaggle Working

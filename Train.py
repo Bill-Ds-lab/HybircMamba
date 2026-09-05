@@ -45,7 +45,7 @@ def get_args():
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=10, type=int)
+    parser.add_argument('--early_stop_patience', default=30, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -466,7 +466,7 @@ def load_checkpoint_safely(
     return model, start_epoch, best_val_acc
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
-
+"""
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
@@ -480,7 +480,20 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
         lr = base_lr * 0.001
 
     return max(lr, min_lr)
+"""
+import math
 
+
+def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5, total_epochs=100):
+    """Cosine Annealing với Warmup"""
+    if epoch < warmup_epochs:
+        # Warmup tuyến tính
+        return base_lr * (epoch + 1) / warmup_epochs
+
+    # Cosine decay từ base_lr xuống min_lr
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    cos_factor = 0.5 * (1 + math.cos(math.pi * progress))
+    return min_lr + (base_lr - min_lr) * cos_factor
 import math
 """def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5):
 
@@ -792,11 +805,11 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    args.__setattr__("model_name", modelname[3])
+    args.__setattr__("model_name", modelname[0])
 
-    args.__setattr__("dataset_name", datasetname[2])
-    args.__setattr__("root_dataset_path", datasetpath[2])
-    args.__setattr__("batch_size", 64)
+    args.__setattr__("dataset_name", datasetname[3])
+    args.__setattr__("root_dataset_path", datasetpath[3])
+    args.__setattr__("batch_size", 8)
     args.__setattr__("img_size", 32)
     args.__setattr__("num_epoch", 100)
 
