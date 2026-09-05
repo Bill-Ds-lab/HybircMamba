@@ -1,13 +1,63 @@
+
+
+import argparse
+import csv
 import gc
+import os
 import time
+
 import numpy as np
 import timm
 import torch
 import torch.nn as nn
+import torchvision.transforms as transforms
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+from torch.utils.data import DataLoader
 
-# Giữ nguyên các import mô hình của bạn
+from Dataloader.DATASET import TrafficSignDataset
+from data_split_utils import get_or_create_split
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description="Benchmark & So sánh các mô hình Traffic Sign")
+
+    parser.add_argument('--dataset_name', default="German_51k", type=str,
+                         choices=["German", "German_CSV", "Belgium", "German_51k", "NEU-DET_surface-dec"])
+    parser.add_argument('--csv_filename', default="Train.csv", type=str)
+    parser.add_argument('--root_dataset_path',
+                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k", type=str)
+    parser.add_argument('--save_path',
+                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ", type=str)
+    parser.add_argument('--output_dir', default="./benchmark_outputs", type=str)
+
+    parser.add_argument('--picture_size', default=32, type=int)
+    parser.add_argument('--batch_size', default=64, type=int)
+    parser.add_argument('--SEED', default=2223, type=int)
+
+    parser.add_argument('--models', nargs='+', default=[
+        "LIGHT_HYBRIC_MAMBA",
+        "MEDIUM_HYBRIC_MAMBA",
+        "HEAVY_HYBRIC_MAMBA",
+        "SUPER_MAMBA_DEPT_3",
+        "SUPER_MAMBA_DEPT_4",
+        "VGG16",
+        "RESNET18",
+        "VIT_B",
+        "VIT_S",
+        "EFFICIENTNET_B0",
+        "MOBILENETV3_SMALL",
+        "GHOSTNET",
+    ])
+
+    parser.add_argument('--skip_missing_checkpoint', action='store_true', default=True)
+    parser.add_argument('--latency_batch_sizes', nargs='+', type=int, default=[1, 8, 16, 32])
+    parser.add_argument('--n_warmup', default=30, type=int)
+    parser.add_argument('--n_runs', default=200, type=int)
+    parser.add_argument('--n_latency_repeats', default=5, type=int)
+
+    return parser.parse_args()
 
 
 def auto_device() -> str:
@@ -17,393 +67,14 @@ def auto_device() -> str:
 def _friendly_cuda_error(e: Exception, device: str) -> str:
     msg = str(e)
     if "is_cuda" in msg or "CUDA" in msg:
-        return (
-            f"Model này dùng Mamba selective-scan CUDA kernel nên chỉ chạy "
-            f"được trên GPU, không chạy được trên CPU (device='{device}'). "
-            f"Hãy gọi lại với device='cuda' (cần máy có GPU + driver CUDA "
-            f"phù hợp với bản mamba_ssm đã cài). Lỗi gốc: {msg}"
-        )
+        return f"Mamba selective-scan kernel yêu cầu GPU (device='{device}'). Lỗi gốc: {msg}"
     return msg
 
 
 # --------------------------------------------------------------------------- #
-# 1. SỐ LƯỢNG THAM SỐ
-# --------------------------------------------------------------------------- #
-def count_parameters(model: nn.Module) -> dict:
-    """Trả về tổng số tham số, số tham số trainable, và kích thước ước tính (MB, float32)."""
-    total = sum(p.numel() for p in model.parameters())
-    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    size_mb = total * 4 / (1024**2)  # float32 = 4 bytes
-
-    return {
-        "total_params": total,
-        "trainable_params": trainable,
-        "size_mb": size_mb,
-        "size_m": total / 1e6,
-    }
-
-
-def count_by_top_module(model: nn.Module) -> dict:
-    """Phân bố số tham số theo từng module con (top-level)."""
-    breakdown = {}
-    for name, module in model.named_children():
-        n = sum(p.numel() for p in module.parameters())
-        breakdown[name] = n
-    return breakdown
-
-
-# --------------------------------------------------------------------------- #
-# 2. FLOPs
-# --------------------------------------------------------------------------- #
-def count_flops(
-    model: nn.Module, input_size=(1, 3, 32, 32), device="cpu"
-) -> dict:
-    """Tính FLOPs của model bằng `thop` hoặc `fvcore`."""
-    model = model.to(device).eval()
-    dummy_input = torch.randn(*input_size).to(device)
-
-    try:
-        from thop import profile
-
-        flops, params = profile(model, inputs=(dummy_input,), verbose=False)
-        method = "thop"
-    except Exception as e1:
-        try:
-            from fvcore.nn import FlopCountAnalysis
-
-            fca = FlopCountAnalysis(model, dummy_input)
-            flops = fca.total()
-            params = sum(p.numel() for p in model.parameters())
-            method = "fvcore"
-        except Exception as e2:
-            raise RuntimeError(
-                f"Không thể tính FLOPs. Lỗi thop: {e1}; Lỗi fvcore: {e2}."
-            )
-
-    return {
-        "flops": flops,
-        "flops_k": flops / 1e3,
-        "flops_m": flops / 1e6,
-        "flops_g": flops / 1e9,
-        "params_from_flops_tool": params,
-        "method": method,
-    }
-
-
-# --------------------------------------------------------------------------- #
-# 3. THỜI GIAN SUY LUẬN (INFERENCE TIME)
-# --------------------------------------------------------------------------- #
-def measure_inference_time(
-    model: nn.Module,
-    input_size=(1, 3, 32, 32),
-    device="cpu",
-    n_warmup=100,
-    n_runs=800,
-) -> dict:
-    """Đo thời gian suy luận trung bình cho 1 batch."""
-    model = model.to(device).eval()
-    dummy_input = torch.randn(*input_size).to(device)
-
-    if device == "cuda":
-        torch.backends.cudnn.benchmark = True
-
-    with torch.no_grad():
-        for _ in range(n_warmup):
-            try:
-                _ = model(dummy_input)
-            except RuntimeError as e:
-                raise RuntimeError(_friendly_cuda_error(e, device)) from e
-
-    if device == "cuda":
-        torch.cuda.synchronize()
-
-    times = []
-    with torch.no_grad():
-        if device == "cuda":
-            starter = torch.cuda.Event(enable_timing=True)
-            ender = torch.cuda.Event(enable_timing=True)
-            for _ in range(n_runs):
-                starter.record()
-                _ = model(dummy_input)
-                ender.record()
-                torch.cuda.synchronize()
-                times.append(starter.elapsed_time(ender))  # ms
-        else:
-            for _ in range(n_runs):
-                start = time.perf_counter()
-                _ = model(dummy_input)
-                end = time.perf_counter()
-                times.append((end - start) * 1000)  # ms
-
-    times = np.array(times)
-    return {
-        "mean_ms": float(times.mean()),
-        "std_ms": float(times.std()),
-        "min_ms": float(times.min()),
-        "max_ms": float(times.max()),
-        "median_ms": float(np.median(times)),
-        "n_runs": n_runs,
-        "device": device,
-    }
-
-
-# --------------------------------------------------------------------------- #
-# 4. ACCURACY + CONFUSION MATRIX
-# --------------------------------------------------------------------------- #
-def evaluate_accuracy(
-    model: nn.Module, dataloader, device="cpu", class_names=None
-):
-    from sklearn.metrics import accuracy_score, confusion_matrix
-
-    model = model.to(device).eval()
-    all_preds, all_labels = [], []
-
-    with torch.no_grad():
-        for images, labels in dataloader:
-            images = images.to(device)
-            outputs = model(images)
-            preds = outputs.argmax(dim=1).cpu().numpy()
-            all_preds.extend(preds)
-            all_labels.extend(labels.numpy())
-
-    acc = accuracy_score(all_labels, all_preds) * 100
-    cm = confusion_matrix(all_labels, all_preds)
-
-    return {
-        "accuracy": acc,
-        "confusion_matrix": cm,
-        "y_true": all_labels,
-        "y_pred": all_preds,
-        "class_names": class_names,
-    }
-
-
-def plot_confusion_matrix(cm, class_names=None, save_path=None):
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=class_names,
-        yticklabels=class_names,
-    )
-    plt.xlabel("Predicted")
-    plt.ylabel("True")
-    plt.title("Confusion Matrix")
-    plt.tight_layout()
-    if save_path:
-        plt.savefig(save_path, dpi=200)
-    plt.show()
-
-
-# --------------------------------------------------------------------------- #
-# 5. INFORMATION DENSITY (IDS)
-# --------------------------------------------------------------------------- #
-def compute_ids(accuracy: float, params_million: float) -> float:
-    return accuracy / params_million if params_million > 0 else 0.0
-
-
-# --------------------------------------------------------------------------- #
-# 6. ROBUSTNESS TEST
-# --------------------------------------------------------------------------- #
-def adjust_gamma(image: np.ndarray, gamma: float) -> np.ndarray:
-    inv = 1.0 if gamma == 0 else gamma
-    img = np.clip(image, 0, 255).astype(np.float32)
-    out = np.power(img / 255.0, inv) * 255.0
-    return np.clip(out, 0, 255).astype(np.uint8)
-
-
-def add_gaussian_noise(
-    image: np.ndarray, mean: float = 0, std: float = 25
-) -> np.ndarray:
-    img = image.astype(np.float32)
-    noise = np.random.normal(mean, std, img.shape)
-    out = img + noise
-    return np.clip(out, 0, 255).astype(np.uint8)
-
-
-def add_rain_effect(
-    image: np.ndarray,
-    size_factor: float = 3.0,
-    angle_range=(-60, 60),
-    density: float = 0.02,
-) -> np.ndarray:
-    import cv2
-
-    img = image.copy()
-    h, w = img.shape[:2]
-    n_drops = int(h * w * density)
-
-    for _ in range(n_drops):
-        x = np.random.randint(0, w)
-        y = np.random.randint(0, h)
-        length = int(size_factor * np.random.uniform(2, 5))
-        angle = np.deg2rad(np.random.uniform(*angle_range))
-        x2 = int(x + length * np.sin(angle))
-        y2 = int(y + length * np.cos(angle))
-        cv2.line(img, (x, y), (x2, y2), (255, 255, 255), 1)
-
-    return img
-
-
-def robustness_test(
-    model: nn.Module,
-    dataloader_factory,
-    device="cpu",
-    scenarios: dict = None,
-) -> dict:
-    if scenarios is None:
-        scenarios = {
-            "dim_gamma_0.5": lambda img: adjust_gamma(img, 0.5),
-            "dim_gamma_0.2": lambda img: adjust_gamma(img, 0.2),
-            "exposure_gamma_1.5": lambda img: adjust_gamma(img, 1.5),
-            "exposure_gamma_1.8": lambda img: adjust_gamma(img, 1.8),
-            "rain_s3": lambda img: add_rain_effect(img, size_factor=3.0),
-            "rain_s7": lambda img: add_rain_effect(img, size_factor=7.0),
-            "noise_mean0": lambda img: add_gaussian_noise(
-                img, mean=0, std=25
-            ),
-            "noise_mean-120": lambda img: add_gaussian_noise(
-                img, mean=-120, std=25
-            ),
-            "noise_mean120": lambda img: add_gaussian_noise(
-                img, mean=120, std=25
-            ),
-        }
-
-    results = {}
-    for name, transform in scenarios.items():
-        loader = dataloader_factory(transform)
-        res = evaluate_accuracy(model, loader, device=device)
-        results[name] = res["accuracy"]
-
-    return results
-
-
-# --------------------------------------------------------------------------- #
-# 7. GRAD-CAM
-# --------------------------------------------------------------------------- #
-def plot_gradcam(
-    model: nn.Module,
-    target_layer,
-    image_tensor: torch.Tensor,
-    original_image: np.ndarray,
-    device="cpu",
-    save_path=None,
-):
-    from pytorch_grad_cam import GradCAM
-    from pytorch_grad_cam.utils.image import show_cam_on_image
-    import matplotlib.pyplot as plt
-
-    model = model.to(device).eval()
-    image_tensor = image_tensor.to(device)
-
-    cam = GradCAM(model=model, target_layers=[target_layer])
-    grayscale_cam = cam(input_tensor=image_tensor)[0]
-    visualization = show_cam_on_image(
-        original_image, grayscale_cam, use_rgb=True
-    )
-
-    plt.imshow(visualization)
-    plt.axis("off")
-    if save_path:
-        plt.savefig(save_path, dpi=200, bbox_inches="tight")
-    plt.show()
-
-    return visualization
-
-
-# --------------------------------------------------------------------------- #
-# 8. BÁO CÁO TỔNG HỢP
-# --------------------------------------------------------------------------- #
-def full_report(
-    model: nn.Module,
-    model_name: str = "Model",
-    input_size=(1, 3, 32, 32),
-    device=None,
-    accuracy: float = None,
-) -> dict:
-    if device is None:
-        device = auto_device()
-
-    print(f"\n{'=' * 60}")
-    print(f"BÁO CÁO ĐÁNH GIÁ: {model_name}  (device={device})")
-    print(f"{'=' * 60}")
-
-    # 1. Params
-    params_info = count_parameters(model)
-    print(f"\n[1] Tham số:")
-    print(
-        f"    Tổng           : {params_info['total_params']:,} "
-        f"({params_info['size_m']:.3f} M)"
-    )
-    print(f"    Trainable      : {params_info['trainable_params']:,}")
-    print(f"    Kích thước     : {params_info['size_mb']:.3f} MB")
-
-    breakdown = count_by_top_module(model)
-    if breakdown:
-        print(f"    Phân bố module :")
-        for name, n in sorted(breakdown.items(), key=lambda kv: -kv[1]):
-            pct = (
-                100 * n / params_info["total_params"]
-                if params_info["total_params"]
-                else 0
-            )
-            print(f"      - {name:<20s}: {n:>10,} ({pct:5.1f}%)")
-
-    # 2. FLOPs
-    try:
-        flops_info = count_flops(model, input_size=input_size, device=device)
-        print(f"\n[2] FLOPs:")
-        print(
-            f"    {flops_info['flops_m']:.3f} M  (phương pháp: {flops_info['method']})"
-        )
-    except Exception as e:
-        flops_info = None
-        print(
-            f"\n[2] FLOPs: Không tính được\n    {_friendly_cuda_error(e, device)}"
-        )
-
-    # 3. Inference time
-    try:
-        time_info = measure_inference_time(
-            model, input_size=input_size, device=device
-        )
-        print(f"\n[3] Thời gian suy luận ({device}):")
-        print(
-            f"    Trung bình     : {time_info['mean_ms']:.3f} ms "
-            f"(± {time_info['std_ms']:.3f}, {time_info['n_runs']} lần chạy)"
-        )
-    except RuntimeError as e:
-        time_info = None
-        print(f"\n[3] Thời gian suy luận: LỖI\n    {e}")
-
-    # 4. IDS (nếu có accuracy)
-    ids_value = None
-    if accuracy is not None:
-        ids_value = compute_ids(accuracy, params_info["size_m"])
-        print(f"\n[4] Information Density (IDS):")
-        print(f"    ACC = {accuracy:.2f}%  ->  IDS = {ids_value:.2f}")
-
-    return {
-        "model_name": model_name,
-        "params": params_info,
-        "flops": flops_info,
-        "inference_time": time_info,
-        "accuracy": accuracy,
-        "ids": ids_value,
-    }
-
-
-# --------------------------------------------------------------------------- #
-# 9. KHỞI TẠO MÔ HÌNH (BUILD MODEL)
+# BUILD MODEL - ĐÃ SỬA ĐÚNG 100% KHỚP VỚI train.py
 # --------------------------------------------------------------------------- #
 def build_Model(name, num_classes=43, pretrained=False):
-    """Hàm tạo mô hình theo tên tiêu chuẩn."""
     if name == "LIGHT_HYBRIC_MAMBA":
         return HybricMamba(
             dims=(3, 16, 32, 56, 96),
@@ -445,157 +116,388 @@ def build_Model(name, num_classes=43, pretrained=False):
         return Super_Mamba(dims=3, depth=4, num_classes=num_classes)
     elif name == "SUPER_MAMBA_DEPT_3":
         return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
-
-    # 10 Mô hình Benchmark chuẩn
     elif name in ["VGG16", "VGG-16"]:
-        return timm.create_model(
-            "vgg16", pretrained=pretrained, num_classes=num_classes
-        )
+        return timm.create_model("vgg16", pretrained=pretrained, num_classes=num_classes)
     elif name in ["RESNET18", "ResNet18"]:
-        return timm.create_model(
-            "resnet18", pretrained=pretrained, num_classes=num_classes
-        )
+        return timm.create_model("resnet18", pretrained=pretrained, num_classes=num_classes)
     elif name in ["VIT_B", "ViT-B"]:
-        return timm.create_model(
-            "vit_base_patch16_224",
-            pretrained=pretrained,
-            num_classes=num_classes,
-            img_size=32,
-        )
+        return timm.create_model("vit_base_patch16_224", pretrained=pretrained, num_classes=num_classes, img_size=32)
     elif name in ["VIT_S", "ViT-S"]:
-        return timm.create_model(
-            "vit_small_patch16_224",
-            pretrained=pretrained,
-            num_classes=num_classes,
-            img_size=32,
-        )
+        return timm.create_model("vit_small_patch16_224", pretrained=pretrained, num_classes=num_classes, img_size=32)
     elif name in ["EFFICIENTNET_B0", "EfficientNet-B0"]:
-        return timm.create_model(
-            "efficientnet_b0", pretrained=pretrained, num_classes=num_classes
-        )
+        return timm.create_model("efficientnet_b0", pretrained=pretrained, num_classes=num_classes)
     elif name in ["MOBILENETV3_SMALL", "MobileNetV3-Small"]:
-        return timm.create_model(
-            "mobilenetv3_small_100",
-            pretrained=pretrained,
-            num_classes=num_classes,
-        )
+        return timm.create_model("mobilenetv3_small_100", pretrained=pretrained, num_classes=num_classes)
     elif name in ["GHOSTNET", "GhostNet"]:
-        return timm.create_model(
-            "ghostnet_100", pretrained=pretrained, num_classes=num_classes
-        )
+        return timm.create_model("ghostnet_100", pretrained=pretrained, num_classes=num_classes)
     else:
-        raise ValueError(f"Tên mô hình '{name}' không tồn tại.")
+        raise ValueError(f"Tên mô hình '{name}' không hợp lệ.")
 
 
-# --------------------------------------------------------------------------- #
-# MAIN BENCHMARK LOOP
-# --------------------------------------------------------------------------- #
+def load_checkpoint_safely(model, checkpoint_path, device):
+    print(f"[LOAD] Nạp checkpoint: {checkpoint_path}")
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
 
+    state_dict = None
+    if isinstance(checkpoint, dict):
+        for key in ["model_state_dict", "state_dict", "model", "net"]:
+            if key in checkpoint:
+                state_dict = checkpoint[key]
+                break
+        if state_dict is None:
+            state_dict = checkpoint
+    else:
+        state_dict = checkpoint
 
-"""
-
-        "VGG16": None,
-        "RESNET18": None,
-        "VIT_B": None,
-        "VIT_S": None,
-        "EFFICIENTNET_B0": None,
-        "MOBILENETV3_SMALL": None,
-        "GHOSTNET": None,
-"""
-if __name__ == "__main__":
-    device = auto_device()
-    num_classes = 43
-    input_size = (1, 3, 32, 32)
-
-    print("=" * 80)
-    print(f"BẮT ĐẦU BENCHMARK TOÀN BỘ MÔ HÌNH TRÊN DEVICE: {device}")
-    print("=" * 80)
-
-    target_models = {
-        "LIGHT_HYBRIC_MAMBA": 97.46,
-        "MEDIUM_HYBRIC_MAMBA": 97.86,
-        "HEAVY_HYBRIC_MAMBA": 98.55,
-        "SUPER_MAMBA_DEPT_3": 98.06,
-        "SUPER_MAMBA_DEPT_4": 98.43,
-
+    clean_state_dict = {
+        (k.replace("module.", "") if k.startswith("module.") else k): v
+        for k, v in state_dict.items()
     }
 
-    final_results = {}
-    reports = {}
+    missing_keys, unexpected_keys = model.load_state_dict(clean_state_dict, strict=False)
 
-    for model_name, acc in target_models.items():
-        print(f"\n>>> Đang thực thi benchmark cho: {model_name} ...")
+    if missing_keys:
+        print(f"  ⚠️ Thiếu {len(missing_keys)} keys (VD: {missing_keys[:3]})")
+    if unexpected_keys:
+        print(f"  ⚠️ Thừa {len(unexpected_keys)} keys (VD: {unexpected_keys[:3]})")
+    if not missing_keys and not unexpected_keys:
+        print("  ✅ Checkpoint khớp 100%.")
 
-        try:
-            model = build_Model(
-                model_name, num_classes=num_classes, pretrained=False
-            )
-            rep = full_report(
-                model,
-                model_name=model_name,
-                input_size=input_size,
-                device=device,
-                accuracy=acc,
-            )
-            reports[model_name] = rep
+    best_val_acc = checkpoint.get("best_val_acc", None) if isinstance(checkpoint, dict) else None
 
-            latencies = []
-            for _ in range(10):
-                t_info = measure_inference_time(
-                    model,
-                    input_size=input_size,
-                    device=device,
-                    n_warmup=30,
-                    n_runs=200,
-                )
-                latencies.append(t_info["median_ms"])
-                time.sleep(0.2)
+    del checkpoint, state_dict, clean_state_dict
+    return model, missing_keys, unexpected_keys, best_val_acc
 
-            final_results[model_name] = latencies
 
-        except Exception as e:
-            print(f"❌ XẢY RA LỖI KHI ĐO MÔ HÌNH {model_name}: {e}")
-            final_results[model_name] = None
+def find_checkpoint(save_path, model_name, dataset_name):
+    path = os.path.join(save_path, model_name, dataset_name, f"{model_name}_best.pth")
+    return path if os.path.exists(path) else None
 
-        finally:
-            if "model" in locals():
-                del model
-            if device == "cuda":
-                torch.cuda.empty_cache()
-            gc.collect()
 
-        time.sleep(1)
+def get_transforms(img_size=32):
+    return transforms.Compose([
+        transforms.Resize((img_size, img_size)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+    ])
 
-    print("\n" + "=" * 90)
-    print("TỔNG HỢP KẾT QUẢ BENCHMARK TOÀN BỘ MÔ HÌNH (LATENCY OVER 10 RUNS)")
-    print("=" * 90)
-    print(
-        f"{'Model Name':<22s} | {'Params (M)':<10s} | {'FLOPs (M)':<10s} | {'Median Latency (ms)':<20s} | {'IDS':<8s}"
+
+# --------------------------------------------------------------------------- #
+# TEST LOADER - DÙNG SPLIT CỐ ĐỊNH THEO PATH (miễn nhiễm với shuffle order)
+# --------------------------------------------------------------------------- #
+def build_test_loader(args):
+    # shuffle_samples không còn quan trọng nữa vì get_or_create_split match theo path,
+    # nhưng để nhất quán và tránh nhầm lẫn, ta để False ở đây.
+    full_dataset = TrafficSignDataset(
+        root=args.root_dataset_path,
+        dataset_name=args.dataset_name,
+        csv_filename=args.csv_filename,
+        shuffle_samples=False,
     )
-    print("-" * 90)
+    num_classes = len(full_dataset.class_to_idx)
+    dataset_class = type(full_dataset)
 
-    for name in target_models.keys():
-        times = final_results.get(name)
-        rep = reports.get(name, {})
+    split_path_exists = os.path.exists(
+        os.path.join(args.save_path, "_dataset_splits", f"{args.dataset_name}_split_seed{args.SEED}.json")
+    )
+    if not split_path_exists:
+        print("\n" + "!" * 90)
+        print("⚠️  CẢNH BÁO QUAN TRỌNG: Chưa có file split cố định cho dataset này.")
+        print("   Split sẽ được TẠO MỚI ngay bây giờ và lưu lại cho các lần sau.")
+        print("   NHƯNG: nếu các checkpoint *_best.pth hiện có được train TRƯỚC KHI")
+        print("   bạn áp dụng cơ chế split cố định này cho train.py, thì split mới")
+        print("   tạo ở đây CÓ THỂ KHÔNG khớp với phần dữ liệu model đã học lúc train.")
+        print("   -> Để kết quả benchmark đáng tin cậy, hãy: ")
+        print("      1) Sửa train.py để dùng chung data_split_utils.get_or_create_split()")
+        print("      2) Train lại (ít nhất 1 lần) TRƯỚC KHI tin vào accuracy ở đây.")
+        print("!" * 90 + "\n")
 
-        params_m = (
-            f"{rep['params']['size_m']:.3f}M" if rep.get("params") else "N/A"
-        )
-        flops_m = (
-            f"{rep['flops']['flops_m']:.2f}M" if rep.get("flops") else "N/A"
-        )
-        ids_str = f"{rep['ids']:.2f}" if rep.get("ids") is not None else "N/A"
+    _, _, test_samples = get_or_create_split(
+        full_dataset, args.save_path, args.dataset_name, seed=args.SEED
+    )
 
-        if times:
-            med = np.median(times)
-            min_t = min(times)
-            max_t = max(times)
-            latency_str = f"{med:.3f} ms ({min_t:.3f} - {max_t:.3f})"
+    transform_test = get_transforms(args.picture_size)
+    test_dataset = dataset_class(
+        root=args.root_dataset_path,
+        transform=transform_test,
+        samples=test_samples,
+        class_to_idx=full_dataset.class_to_idx,
+        shuffle_samples=False,
+    )
+
+    test_loader = DataLoader(
+        test_dataset, batch_size=args.batch_size, shuffle=False,
+        num_workers=4, pin_memory=True,
+    )
+
+    print(f"[DATA] Test set: {len(test_dataset)} ảnh | {num_classes} classes")
+    return test_loader, num_classes
+
+
+def count_parameters(model: nn.Module) -> dict:
+    total = sum(p.numel() for p in model.parameters())
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    size_mb = total * 4 / (1024 ** 2)
+    return {"total_params": total, "trainable_params": trainable, "size_mb": size_mb, "size_m": total / 1e6}
+
+
+def count_flops(model: nn.Module, input_size=(1, 3, 32, 32), device="cpu") -> dict:
+    model = model.to(device).eval()
+    dummy_input = torch.randn(*input_size).to(device)
+    try:
+        from thop import profile
+        flops, params = profile(model, inputs=(dummy_input,), verbose=False)
+        method = "thop"
+    except Exception as e1:
+        try:
+            from fvcore.nn import FlopCountAnalysis
+            fca = FlopCountAnalysis(model, dummy_input)
+            flops = fca.total()
+            method = "fvcore"
+        except Exception as e2:
+            raise RuntimeError(f"Không thể tính FLOPs (thop: {e1}; fvcore: {e2})")
+    return {"flops_m": flops / 1e6, "method": method}
+
+
+def measure_inference_time(model, input_size=(1, 3, 32, 32), device="cpu", n_warmup=30, n_runs=200) -> dict:
+    model = model.to(device).eval()
+    dummy_input = torch.randn(*input_size).to(device)
+    if device == "cuda":
+        torch.backends.cudnn.benchmark = True
+
+    with torch.no_grad():
+        for _ in range(n_warmup):
+            try:
+                _ = model(dummy_input)
+            except RuntimeError as e:
+                raise RuntimeError(_friendly_cuda_error(e, device)) from e
+
+    if device == "cuda":
+        torch.cuda.synchronize()
+
+    times = []
+    with torch.no_grad():
+        if device == "cuda":
+            starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+            for _ in range(n_runs):
+                starter.record()
+                _ = model(dummy_input)
+                ender.record()
+                torch.cuda.synchronize()
+                times.append(starter.elapsed_time(ender))
         else:
-            latency_str = "FAILED"
+            for _ in range(n_runs):
+                start = time.perf_counter()
+                _ = model(dummy_input)
+                times.append((time.perf_counter() - start) * 1000)
+
+    times = np.array(times)
+    return {"median_ms": float(np.median(times))}
+
+
+def measure_peak_memory(model, input_size=(1, 3, 32, 32), device="cuda") -> dict:
+    if device != "cuda" or not torch.cuda.is_available():
+        return {"peak_memory_mb": None}
+    model = model.to(device).eval()
+    dummy_input = torch.randn(*input_size).to(device)
+    torch.cuda.reset_peak_memory_stats(device)
+    with torch.no_grad():
+        _ = model(dummy_input)
+    torch.cuda.synchronize()
+    peak_mb = torch.cuda.max_memory_allocated(device) / (1024 ** 2)
+    return {"peak_memory_mb": peak_mb}
+
+
+def evaluate_accuracy(model, dataloader, device="cpu"):
+    model = model.to(device).eval()
+    all_preds, all_labels = [], []
+    with torch.no_grad():
+        for images, labels in dataloader:
+            images = images.to(device)
+            outputs = model(images)
+            if isinstance(outputs, tuple):
+                outputs = outputs[0]
+            preds = outputs.argmax(dim=1).cpu().numpy()
+            all_preds.extend(preds)
+
+            label_arr = labels.cpu().numpy() if isinstance(labels, torch.Tensor) else labels
+            all_labels.extend(label_arr)
+
+    acc = accuracy_score(all_labels, all_preds) * 100
+    f1_macro = f1_score(all_labels, all_preds, average="macro") * 100
+    f1_weighted = f1_score(all_labels, all_preds, average="weighted") * 100
+    cm = confusion_matrix(all_labels, all_preds)
+    return {"accuracy": acc, "f1_macro": f1_macro, "f1_weighted": f1_weighted, "confusion_matrix": cm}
+
+
+def plot_confusion_matrix(cm, model_name, save_dir):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    os.makedirs(save_dir, exist_ok=True)
+    plt.figure(figsize=(12, 10))
+    sns.heatmap(cm, annot=False, fmt="d", cmap="Blues", cbar=True)
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.title(f"Confusion Matrix - {model_name}")
+    plt.tight_layout()
+    path = os.path.join(save_dir, f"confusion_matrix_{model_name}.png")
+    plt.savefig(path, dpi=200)
+    plt.close()
+    return path
+
+
+def compute_ids(accuracy: float, params_million: float) -> float:
+    return accuracy / params_million if params_million > 0 else 0.0
+
+
+def benchmark_one_model(model_name, args, test_loader, num_classes, device):
+    print(f"\n{'=' * 70}\n>>> BENCHMARK: {model_name}\n{'=' * 70}")
+    result = {"model_name": model_name}
+
+    model = build_Model(model_name, num_classes=num_classes, pretrained=False)
+    params_info = count_parameters(model)
+    result["params_m"] = params_info["size_m"]
+    result["size_mb"] = params_info["size_mb"]
+
+    ckpt_path = find_checkpoint(args.save_path, model_name, args.dataset_name)
+    result["checkpoint_found"] = ckpt_path is not None
+
+    if ckpt_path is not None:
+        model, missing, unexpected, _ = load_checkpoint_safely(model, ckpt_path, device)
+        result["arch_mismatch"] = bool(missing or unexpected)
+    else:
+        print(
+            f"  ⚠️ Không tìm thấy checkpoint tại: {args.save_path}/{model_name}/{args.dataset_name}/{model_name}_best.pth")
+        result["arch_mismatch"] = None
+
+    model = model.to(device)
+
+    try:
+        flops_info = count_flops(model, input_size=(1, 3, args.picture_size, args.picture_size), device=device)
+        result["flops_m"] = flops_info["flops_m"]
+    except Exception as e:
+        print(f"  FLOPs lỗi: {_friendly_cuda_error(e, device)}")
+        result["flops_m"] = None
+
+    result["latency_ms"] = {}
+    for bs in args.latency_batch_sizes:
+        try:
+            medians = []
+            for _ in range(args.n_latency_repeats):
+                t_info = measure_inference_time(
+                    model, input_size=(bs, 3, args.picture_size, args.picture_size),
+                    device=device, n_warmup=args.n_warmup, n_runs=args.n_runs,
+                )
+                medians.append(t_info["median_ms"])
+                time.sleep(0.05)
+            result["latency_ms"][bs] = float(np.median(medians))
+            print(f"  Latency (bs={bs}): {result['latency_ms'][bs]:.3f} ms")
+        except RuntimeError as e:
+            result["latency_ms"][bs] = None
+            print(f"  Latency (bs={bs}) LỖI: {e}")
+
+    try:
+        mem_info = measure_peak_memory(model, input_size=(1, 3, args.picture_size, args.picture_size), device=device)
+        result["peak_memory_mb"] = mem_info["peak_memory_mb"]
+    except Exception as e:
+        result["peak_memory_mb"] = None
+        print(f"  Memory lỗi: {e}")
+
+    if ckpt_path is not None and not result["arch_mismatch"]:
+        try:
+            acc_info = evaluate_accuracy(model, test_loader, device=device)
+            result["accuracy"] = acc_info["accuracy"]
+            result["f1_macro"] = acc_info["f1_macro"]
+            result["f1_weighted"] = acc_info["f1_weighted"]
+            result["ids"] = compute_ids(acc_info["accuracy"], params_info["size_m"])
+
+            cm_path = plot_confusion_matrix(acc_info["confusion_matrix"], model_name, args.output_dir)
+            result["confusion_matrix_path"] = cm_path
+            print(
+                f"  ✅ Test Acc: {acc_info['accuracy']:.2f}% | F1-macro: {acc_info['f1_macro']:.2f}% | IDS: {result['ids']:.2f}")
+        except Exception as e:
+            print(f"  ❌ Lỗi khi tính accuracy: {e}")
+            result["accuracy"] = None
+    elif result["arch_mismatch"]:
+        print("  ⚠️ Bỏ qua accuracy vì kiến trúc không khớp checkpoint.")
+        result["accuracy"] = None
+    else:
+        result["accuracy"] = None
+
+    del model
+    if device == "cuda":
+        torch.cuda.empty_cache()
+    gc.collect()
+
+    return result
+
+
+def main():
+    args = get_args()
+    device = auto_device()
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    print("=" * 80)
+    print(f"SO SÁNH MÔ HÌNH | Dataset: {args.dataset_name} | Device: {device}")
+    print("=" * 80)
+
+    test_loader, num_classes = build_test_loader(args)
+
+    all_results = []
+    for model_name in args.models:
+        try:
+            res = benchmark_one_model(model_name, args, test_loader, num_classes, device)
+        except Exception as e:
+            print(f"❌ LỖI với model {model_name}: {e}")
+            res = {"model_name": model_name, "error": str(e)}
+        all_results.append(res)
+
+    print("\n" + "=" * 110)
+    print("BẢNG TỔNG HỢP KẾT QUẢ")
+    print("=" * 110)
+    header = f"{'Model':<22s} | {'Params(M)':<10s} | {'FLOPs(M)':<10s} | {'Lat bs=1(ms)':<12s} | {'Mem(MB)':<9s} | {'Acc(%)':<8s} | {'F1-macro':<9s} | {'IDS':<8s}"
+    print(header)
+    print("-" * 110)
+
+    csv_rows = []
+    for r in all_results:
+        params_m = f"{r.get('params_m', 0):.3f}" if r.get("params_m") is not None else "N/A"
+        flops_m = f"{r.get('flops_m', 0):.2f}" if r.get("flops_m") is not None else "N/A"
+        lat1 = r.get("latency_ms", {}).get(1) if r.get("latency_ms") else None
+        lat1_str = f"{lat1:.3f}" if lat1 is not None else "N/A"
+        mem = f"{r.get('peak_memory_mb'):.1f}" if r.get("peak_memory_mb") is not None else "N/A"
+        acc = f"{r.get('accuracy'):.2f}" if r.get("accuracy") is not None else "N/A"
+        f1m = f"{r.get('f1_macro'):.2f}" if r.get("f1_macro") is not None else "N/A"
+        ids = f"{r.get('ids'):.2f}" if r.get("ids") is not None else "N/A"
 
         print(
-            f"{name:<22s} | {params_m:<10s} | {flops_m:<10s} | {latency_str:<20s} | {ids_str:<8s}"
-        )
+            f"{r['model_name']:<22s} | {params_m:<10s} | {flops_m:<10s} | {lat1_str:<12s} | {mem:<9s} | {acc:<8s} | {f1m:<9s} | {ids:<8s}")
 
-    print("=" * 90)
+        csv_rows.append({
+            "model_name": r["model_name"],
+            "params_m": r.get("params_m"),
+            "flops_m": r.get("flops_m"),
+            **{f"latency_bs{bs}_ms": r.get("latency_ms", {}).get(bs) for bs in args.latency_batch_sizes},
+            "peak_memory_mb": r.get("peak_memory_mb"),
+            "accuracy": r.get("accuracy"),
+            "f1_macro": r.get("f1_macro"),
+            "f1_weighted": r.get("f1_weighted"),
+            "ids": r.get("ids"),
+            "checkpoint_found": r.get("checkpoint_found"),
+            "arch_mismatch": r.get("arch_mismatch"),
+        })
+
+    print("=" * 110)
+
+    csv_path = os.path.join(args.output_dir, f"benchmark_results_{args.dataset_name}.csv")
+    if csv_rows:
+        fieldnames = list(csv_rows[0].keys())
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(csv_rows)
+        print(f"\n📄 Đã lưu kết quả CSV: {csv_path}")
+
+
+if __name__ == "__main__":
+    main()

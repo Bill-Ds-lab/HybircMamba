@@ -805,11 +805,11 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    args.__setattr__("model_name", modelname[0])
+    args.__setattr__("model_name", modelname[8])
 
-    args.__setattr__("dataset_name", datasetname[3])
-    args.__setattr__("root_dataset_path", datasetpath[3])
-    args.__setattr__("batch_size", 8)
+    args.__setattr__("dataset_name", datasetname[2])
+    args.__setattr__("root_dataset_path", datasetpath[2])
+    args.__setattr__("batch_size", 64)
     args.__setattr__("img_size", 32)
     args.__setattr__("num_epoch", 100)
 

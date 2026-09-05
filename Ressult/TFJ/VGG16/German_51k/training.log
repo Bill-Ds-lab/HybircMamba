@@ -142,3 +142,35 @@
 2026-08-25 03:06:28 [INFO] 
 [RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_4/German_51k/SUPER_MAMBA_DEPT_4_best.pth
 2026-08-25 03:06:29 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9988 | F1-Macro: 0.9990 | F1-Weighted: 0.9988
+2026-09-06 01:22:58 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-06 01:22:58 [INFO] Dữ liệu đã chia -> Train (70%): 36287 | Val (15%): 7776 | Test (15%): 7776
+2026-09-06 01:22:58 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-06 01:23:00 [INFO]   Batch 0: 6 classes (first 5: [5, 7, 9, 10, 25])
+2026-09-06 01:23:00 [INFO]   Batch 1: 6 classes (first 5: [1, 2, 4, 10, 19])
+2026-09-06 01:23:00 [INFO]   Batch 2: 6 classes (first 5: [2, 12, 27, 31, 35])
+2026-09-06 01:23:00 [INFO]   Batch 3: 8 classes (first 5: [2, 4, 9, 13, 19])
+2026-09-06 01:23:00 [INFO]   Batch 4: 6 classes (first 5: [7, 12, 13, 14, 24])
+2026-09-06 01:23:00 [WARNING] ⚠️ WARNING: Trung bình 6.4 classes/batch - Dữ liệu chưa được trộn đều!
+2026-09-06 01:23:01 [INFO] ============================================================
+2026-09-06 01:23:01 [INFO] Starting training: VGG16
+2026-09-06 01:23:01 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k
+2026-09-06 01:23:01 [INFO] Device: cuda
+2026-09-06 01:23:01 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-06 01:23:01 [INFO] ============================================================
+2026-09-06 01:23:22 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-06 01:23:22 [INFO] Dữ liệu đã chia -> Train (70%): 36287 | Val (15%): 7776 | Test (15%): 7776
+2026-09-06 01:23:22 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-06 01:23:22 [INFO]   Batch 0: 25 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:23:22 [INFO]   Batch 1: 28 classes (first 5: [0, 2, 3, 5, 7])
+2026-09-06 01:23:22 [INFO]   Batch 2: 28 classes (first 5: [1, 2, 3, 5, 6])
+2026-09-06 01:23:22 [INFO]   Batch 3: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:23:22 [INFO]   Batch 4: 34 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:23:22 [INFO] ✅ Shuffle tốt! Trung bình 28.8 classes/batch
+2026-09-06 01:23:23 [INFO] ============================================================
+2026-09-06 01:23:23 [INFO] Starting training: VGG16
+2026-09-06 01:23:23 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k
+2026-09-06 01:23:23 [INFO] Device: cuda
+2026-09-06 01:23:23 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-06 01:23:23 [INFO] ============================================================
