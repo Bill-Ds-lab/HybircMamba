@@ -24,7 +24,6 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.metrics import confusion_matrix, f1_score
-from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
@@ -53,7 +52,7 @@ def get_args():
 
     # 📌 Đường dẫn dataset ImageNet-1k TFRecords trên Kaggle
     parser.add_argument('--root_dataset_path',
-                        default="/kaggle/input/notebooks/hmendonca/imagenet-1k-tfrecords-ilsvrc2012-tf2-helloworld",
+                        default="/kaggle/input/imagenet-1k-tfrecords-ilsvrc2012-part-0",
                         type=str)
 
     # 📌 Thư mục lưu checkpoint & logs trên Kaggle Working
@@ -90,8 +89,8 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.5,
-            conv_frac=0.3,
+            ssm_frac=0.7,
+            conv_frac=0.2,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -172,7 +171,7 @@ def get_transforms(img_size=224):
 class ImageNetTFRecordDataset(Dataset):
     """Dataset đọc trực tiếp định dạng TFRecord trên Kaggle sang PyTorch Tensor"""
 
-    def __init__(self, root_dir, transform=None, max_samples=None):
+    def __init__(self, root_dir, transform=None, max_samples=None, desc="Loading TFRecords"):
         self.transform = transform
         self.samples = []
 
@@ -195,7 +194,7 @@ class ImageNetTFRecordDataset(Dataset):
 
         # Đọc dữ liệu từ TFRecords
         raw_dataset = tf.data.TFRecordDataset(tfrec_files)
-        for raw_record in tqdm(raw_dataset, desc="Loading ImageNet TFRecords"):
+        for raw_record in tqdm(raw_dataset, desc=desc):
             example = tf.io.parse_single_example(raw_record, feature_description)
             img_bytes = example['image/encoded'].numpy()
             label = int(example['image/class/label'].numpy())
@@ -259,59 +258,59 @@ def setup_logging(folder_path):
 def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None):
     transform_train, transform_test = get_transforms(img_size)
 
-    full_dataset = ImageNetTFRecordDataset(root_dir=root_path, transform=None)
+    # 📌 Tự động xác định đường dẫn train và validation
+    train_dir = os.path.join(root_path, "train")
+    val_dir = os.path.join(root_path, "validation")
+
+    # Kiểm tra cấu trúc nếu thư mục gốc không chứa trực tiếp train/validation
+    if not os.path.exists(train_dir):
+        for root, dirs, _ in os.walk(root_path):
+            if "train" in dirs and "validation" in dirs:
+                train_dir = os.path.join(root, "train")
+                val_dir = os.path.join(root, "validation")
+                break
+
+    if not os.path.exists(train_dir) or not os.path.exists(val_dir):
+        raise FileNotFoundError(f"Không tìm thấy tập train/validation hợp lệ trong {root_path}")
+
+    # Đọc trực tiếp dữ liệu tập Train và Validation
+    train_dataset = ImageNetTFRecordDataset(
+        root_dir=train_dir,
+        transform=transform_train,
+        desc="Loading Train TFRecords"
+    )
+    val_dataset = ImageNetTFRecordDataset(
+        root_dir=val_dir,
+        transform=transform_test,
+        desc="Loading Val TFRecords"
+    )
+
+    # Tập Test sử dụng chung bộ dữ liệu Validation
+    test_dataset = ImageNetTFRecordDataset(
+        root_dir=val_dir,
+        transform=transform_test,
+        desc="Loading Test TFRecords"
+    )
+
     num_classes = 1000
 
-    log_msg = f"Dataset ImageNet-1k | Số nhãn: {num_classes} | Tổng số ảnh: {len(full_dataset)}"
+    log_msg = f"Dataset ImageNet-1k | Số nhãn: {num_classes} | Train: {len(train_dataset)} | Val: {len(val_dataset)}"
     print(log_msg)
     if logger:
         logger.info(log_msg)
 
-    indices = list(range(len(full_dataset)))
-    labels = [full_dataset.samples[i][1] for i in indices]
-
-    train_idx, temp_idx = train_test_split(
-        indices, test_size=0.20, random_state=seed, shuffle=True, stratify=labels
-    )
-    temp_labels = [labels[i] for i in temp_idx]
-
-    val_idx, test_idx = train_test_split(
-        temp_idx, test_size=0.50, random_state=seed, shuffle=True, stratify=temp_labels
-    )
-
-    class CustomSubset(Dataset):
-        def __init__(self, dataset, indices, transform=None):
-            self.dataset = dataset
-            self.indices = indices
-            self.transform = transform
-
-        def __getitem__(self, idx):
-            img_bytes, label = self.dataset.samples[self.indices[idx]]
-            image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-            if self.transform:
-                image = self.transform(image)
-            return image, label
-
-        def __len__(self):
-            return len(self.indices)
-
-    train_dataset = CustomSubset(full_dataset, train_idx, transform=transform_train)
-    val_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
-    test_dataset = CustomSubset(full_dataset, test_idx, transform=transform_test)
-
-    # 📌 Giới hạn num_workers=2 để tránh lỗi bộ nhớ đệm CPU trên Kaggle
+    # 📌 Giới hạn num_workers để tối ưu tài nguyên CPU Kaggle
     num_workers = min(4, os.cpu_count() or 2)
 
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=num_workers,
-                              pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers,
-                             pin_memory=True)
-
-    log_msg = f"Chia dữ liệu -> Train (80%): {len(train_dataset)} | Val (10%): {len(val_dataset)} | Test (10%): {len(test_dataset)}"
-    print(log_msg)
-    if logger:
-        logger.info(log_msg)
+    train_loader = DataLoader(
+        train_dataset, batch_size=batchsize, shuffle=True, num_workers=num_workers, pin_memory=True
+    )
+    val_loader = DataLoader(
+        val_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers, pin_memory=True
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers, pin_memory=True
+    )
 
     return train_loader, val_loader, test_loader, num_classes
 
@@ -534,7 +533,6 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
 if __name__ == "__main__":
     models_to_train = [
-
         "HEAVY_HYBRIC_MAMBA",
         "MEDIUM_HYBRIC_MAMBA",
         "LIGHT_HYBRIC_MAMBA",
@@ -542,7 +540,15 @@ if __name__ == "__main__":
 
     args = get_args()
 
-    args.root_dataset_path = "/kaggle/input/imagenet-1k-tfrecords-ilsvrc2012-tf2-helloworld"
+    # 📌 TỰ ĐỘNG KHỞI TẠO VÀ TÌM KIẾM ĐƯỜNG DẪN DATASET CHÍNH XÁC TRÊN KAGGLE
+    input_path = "/kaggle/input"
+    if os.path.exists(input_path):
+        available_dirs = os.listdir(input_path)
+        matched_dir = next((d for d in available_dirs if "imagenet" in d.lower()), None)
+        if matched_dir:
+            args.root_dataset_path = os.path.join(input_path, matched_dir)
+            print(f"-> Đã tự động phát hiện đường dẫn Dataset: {args.root_dataset_path}")
+
     args.save_path = "/kaggle/working/Result"
     args.dataset_name = "ImageNet-1k"
     args.class_num = 1000
