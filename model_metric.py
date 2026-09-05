@@ -490,6 +490,18 @@ def build_Model(name, num_classes=43, pretrained=False):
 # --------------------------------------------------------------------------- #
 # MAIN BENCHMARK LOOP
 # --------------------------------------------------------------------------- #
+
+
+"""
+
+        "VGG16": None,
+        "RESNET18": None,
+        "VIT_B": None,
+        "VIT_S": None,
+        "EFFICIENTNET_B0": None,
+        "MOBILENETV3_SMALL": None,
+        "GHOSTNET": None,
+"""
 if __name__ == "__main__":
     device = auto_device()
     num_classes = 43
@@ -499,21 +511,13 @@ if __name__ == "__main__":
     print(f"BẮT ĐẦU BENCHMARK TOÀN BỘ MÔ HÌNH TRÊN DEVICE: {device}")
     print("=" * 80)
 
-    # Danh sách tất cả các mô hình trong build_Model và Accuracy tương ứng (nếu có)
-    # Các mô hình benchmark nếu chưa có độ chính xác cụ thể có thể để None
     target_models = {
         "LIGHT_HYBRIC_MAMBA": 97.46,
         "MEDIUM_HYBRIC_MAMBA": 97.86,
         "HEAVY_HYBRIC_MAMBA": 98.55,
         "SUPER_MAMBA_DEPT_3": 98.06,
         "SUPER_MAMBA_DEPT_4": 98.43,
-        "VGG16": None,
-        "RESNET18": None,
-        "VIT_B": None,
-        "VIT_S": None,
-        "EFFICIENTNET_B0": None,
-        "MOBILENETV3_SMALL": None,
-        "GHOSTNET": None,
+
     }
 
     final_results = {}
@@ -523,12 +527,9 @@ if __name__ == "__main__":
         print(f"\n>>> Đang thực thi benchmark cho: {model_name} ...")
 
         try:
-            # 1. Khởi tạo mô hình
             model = build_Model(
                 model_name, num_classes=num_classes, pretrained=False
             )
-
-            # 2. Chạy báo cáo tổng quan (Params, FLOPs, Single Inference, IDS)
             rep = full_report(
                 model,
                 model_name=model_name,
@@ -538,7 +539,6 @@ if __name__ == "__main__":
             )
             reports[model_name] = rep
 
-            # 3. Đo độ trễ suy luận nhiều lần (10 runs x 400 iterations)
             latencies = []
             for _ in range(10):
                 t_info = measure_inference_time(
@@ -558,7 +558,6 @@ if __name__ == "__main__":
             final_results[model_name] = None
 
         finally:
-            # Dọn dẹp GPU memory tránh OOM giữa các mô hình
             if "model" in locals():
                 del model
             if device == "cuda":
@@ -567,9 +566,6 @@ if __name__ == "__main__":
 
         time.sleep(1)
 
-    # ----------------------------------------------------------------------- #
-    # TỔNG HỢP KẾT QUẢ VÀ IN BẢNG BÁO CÁO
-    # ----------------------------------------------------------------------- #
     print("\n" + "=" * 90)
     print("TỔNG HỢP KẾT QUẢ BENCHMARK TOÀN BỘ MÔ HÌNH (LATENCY OVER 10 RUNS)")
     print("=" * 90)

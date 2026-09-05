@@ -1,0 +1,16 @@
+2026-08-26 01:46:09 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-08-26 01:46:09 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-08-26 01:46:09 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-08-26 01:46:11 [INFO]   Batch 0: 35 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-26 01:46:11 [INFO]   Batch 1: 36 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-26 01:46:11 [INFO]   Batch 2: 34 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-26 01:46:11 [INFO]   Batch 3: 34 classes (first 5: [1, 2, 3, 4, 5])
+2026-08-26 01:46:11 [INFO]   Batch 4: 37 classes (first 5: [0, 1, 2, 3, 4])
+2026-08-26 01:46:11 [INFO] ✅ Shuffle tốt! Trung bình 35.2 classes/batch
+2026-08-26 01:46:12 [INFO] ============================================================
+2026-08-26 01:46:12 [INFO] Starting training: VIT_S
+2026-08-26 01:46:12 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-08-26 01:46:12 [INFO] Device: cuda
+2026-08-26 01:46:12 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-08-26 01:46:12 [INFO] ============================================================

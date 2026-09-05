@@ -29,6 +29,7 @@ def get_args():
     parser = argparse.ArgumentParser(description="Traffic Sign Recognition Training with Mamba")
 
     parser.add_argument('--model_name', default="LIGHT_HYBRIC_MAMBA", type=str)
+    # Hỗ trợ: "German" (folder root/<class>), "German_CSV" (root/Train.csv), "Belgium" (root/Train/<class> + root/Test/<class>)
     parser.add_argument('--dataset_name', default="German", type=str,
                         choices=["German", "German_CSV", "Belgium"])
     parser.add_argument('--csv_filename', default="Train.csv", type=str,
@@ -39,12 +40,12 @@ def get_args():
                         type=str)
 
     parser.add_argument('--save_path',
-                        default="/kaggle/working/",
+                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ",
                         type=str)
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=15, type=int)
+    parser.add_argument('--early_stop_patience', default=10, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -245,9 +246,9 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     )
 
     # 4. Tạo DataLoader
-    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=12, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=12, pin_memory=True)
-    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=12, pin_memory=True)
+    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=6, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=6, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=6, pin_memory=True)
 
     log_msg = f"Dữ liệu đã chia -> Train (70%): {len(train_dataset)} | Val (15%): {len(val_dataset)} | Test (15%): {len(test_dataset)}"
     print(log_msg)
@@ -465,24 +466,70 @@ def load_checkpoint_safely(
     return model, start_epoch, best_val_acc
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
-"""
+
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 30:
+    elif epoch < 35:
         lr = base_lr
-    elif epoch < 50:
-        lr = base_lr * 0.1
     elif epoch < 60:
+        lr = base_lr * 0.1
+    elif epoch < 80:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
 
     return max(lr, min_lr)
-    """
-def get_lr(epoch, base_lr=3e-4, min_lr=1e-6, total_epochs=50):
-    warmup_epochs = 5
 
+import math
+"""def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5):
+
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+
+    e = epoch - warmup_epochs
+    T = total_epochs - warmup_epochs
+
+    # Warm restarts: first cycle length T0, then doubles
+    T0 = 20  # length of first cycle (tune: 15-25 works well for ~130 epoch runs)
+    cycle_len = T0
+    t = e
+    while t >= cycle_len:
+        t -= cycle_len
+        cycle_len *= 2  # T_mult = 2
+
+    cos_inner = math.pi * t / cycle_len
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(cos_inner))
+    return max(lr, min_lr)
+    """
+import math
+"""
+def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6,
+           warmup_epochs=5, T0=20, decay_factor=0.6):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    e = epoch - warmup_epochs
+    cycle_len = T0
+    t = e
+    cycle_idx = 0
+    while t >= cycle_len:
+        t -= cycle_len
+        cycle_len *= 2
+        cycle_idx += 1
+    peak_lr = base_lr * (decay_factor ** cycle_idx)
+    cos_inner = math.pi * t / cycle_len
+    lr = min_lr + 0.5 * (peak_lr - min_lr) * (1 + math.cos(cos_inner))
+    return max(lr, min_lr)
+    """
+import math
+"""
+def get_lr(
+    epoch,
+    total_epochs=100,
+    base_lr=3e-4,
+    min_lr=1e-6,
+    warmup_epochs=8
+):
     # Warmup
     if epoch < warmup_epochs:
         return base_lr * (epoch + 1) / warmup_epochs
@@ -491,10 +538,56 @@ def get_lr(epoch, base_lr=3e-4, min_lr=1e-6, total_epochs=50):
     progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
 
     lr = min_lr + 0.5 * (base_lr - min_lr) * (
-        1 + np.cos(np.pi * progress)
+        1 + math.cos(math.pi * progress)
     )
 
     return max(lr, min_lr)
+"""
+"""
+def get_lr(
+    epoch,
+    total_epochs=100,
+    base_lr=1e-4,        # giảm từ 3e-4 xuống 1e-4
+    min_lr=1e-6,
+    warmup_epochs=12      # tăng warmup dài hơn (10-15% tổng epoch)
+):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (
+        1 + math.cos(math.pi * progress)
+    )
+    return max(lr, min_lr)
+    """
+"""
+def get_lr(
+    epoch,
+    total_epochs=150,      # tăng từ 100
+    base_lr=1.5e-3,
+    min_lr=1e-6,
+    warmup_epochs=8
+):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
+    return max(lr, min_lr)
+    """
+import math
+"""
+def get_lr(
+    epoch,
+    total_epochs=120,
+    base_lr=1e-3,
+    min_lr=1e-6,
+    warmup_epochs=6
+):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
+    return max(lr, min_lr)
+    """
 # ======================================================================== TRAIN AND VAL ===============================================
 
 def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logger):
@@ -699,58 +792,55 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    for i in range(11,7,-1):
-        args.__setattr__("model_name", modelname[i])
+    args.__setattr__("model_name", modelname[3])
 
-        args.__setattr__("dataset_name", datasetname[0])
-        args.__setattr__("root_dataset_path", datasetpath[4])
-        args.__setattr__("batch_size", 128)
-        args.__setattr__("img_size", 32)
-        args.__setattr__("class_num", 43)
-        args.__setattr__("num_epoch", 50)
+    args.__setattr__("dataset_name", datasetname[2])
+    args.__setattr__("root_dataset_path", datasetpath[2])
+    args.__setattr__("batch_size", 64)
+    args.__setattr__("img_size", 32)
+    args.__setattr__("num_epoch", 100)
 
-        args.__setattr__("model_name", modelname[i])
 
-        args.__setattr__("resume_path",
-                         os.path.join(
-                             args.save_path,
-                             args.model_name,
-                             args.dataset_name,
-                             f"{args.model_name}_best.pth"
-                         )
-                         )
+    args.__setattr__("resume_path",
+                     os.path.join(
+                         args.save_path,
+                         args.model_name,
+                         args.dataset_name,
+                         f"{args.model_name}_best.pth"
+                     )
+                     )
 
-        folder_path = os.path.join(args.save_path, args.model_name, args.dataset_name)
-        logger = setup_logging(folder_path)
+    folder_path = os.path.join(args.save_path, args.model_name, args.dataset_name)
+    logger = setup_logging(folder_path)
 
-        full_dataset = TrafficSignDataset(
-            root=args.root_dataset_path,
-            dataset_name=args.dataset_name,
-            csv_filename=args.csv_filename,
-            shuffle_samples=True
-        )
+    full_dataset = TrafficSignDataset(
+        root=args.root_dataset_path,
+        dataset_name=args.dataset_name,
+        csv_filename=args.csv_filename,
+        shuffle_samples=True
+    )
 
-        train_loader, val_loader, test_loader, num_classes = dataloader_prepare(
-            full_dataset=full_dataset,
-            dataset_name=args.dataset_name,
-            root=args.root_dataset_path,
-            batchsize=args.batch_size,
-            img_size=args.picture_size,
-            seed=args.SEED,
-            logger=logger
-        )
+    train_loader, val_loader, test_loader, num_classes = dataloader_prepare(
+        full_dataset=full_dataset,
+        dataset_name=args.dataset_name,
+        root=args.root_dataset_path,
+        batchsize=args.batch_size,
+        img_size=args.picture_size,
+        seed=args.SEED,
+        logger=logger
+    )
 
-        model = build_Model(
-            name=args.model_name,
-            num_classes=num_classes,
-            pretrained=True
-        )
+    model = build_Model(
+        name=args.model_name,
+        num_classes=num_classes,
+        pretrained=True
+    )
 
-        train_and_evaluate(
-            args=args,
-            model=model,
-            train_loader=train_loader,
-            val_loader=val_loader,
-            test_loader=test_loader,
-            logger=logger
-        )
+    train_and_evaluate(
+        args=args,
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        test_loader=test_loader,
+        logger=logger
+    )

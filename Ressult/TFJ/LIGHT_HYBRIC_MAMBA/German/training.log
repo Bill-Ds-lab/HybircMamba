@@ -1,5 +1,5 @@
 2026-08-21 15:24:23 [INFO] ============================================================
-2026-08-21 15:24:23 [INFO] Starting training: HybricMamba
+2026-08-21 15:24:23 [INFO] Starting training: Light_Light_HybricMamba
 2026-08-21 15:24:23 [INFO] Dataset: German
 2026-08-21 15:24:23 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
 2026-08-21 15:24:23 [INFO] Device: cuda
@@ -53,7 +53,7 @@
 2026-08-21 16:13:42 [INFO] ✓ Saved best model: Acc=0.9636 at epoch 20
 2
 2026-08-21 16:33:08 [INFO] ============================================================
-2026-08-21 16:33:08 [INFO] Starting training: HybricMamba
+2026-08-21 16:33:08 [INFO] Starting training: Light_Light_HybricMamba
 2026-08-21 16:33:08 [INFO] Dataset: German
 2026-08-21 16:33:08 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
 2026-08-21 16:33:08 [INFO] Device: cuda
@@ -77,7 +77,7 @@
 2026-08-21 16:33:10 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
 2026-08-21 16:33:10 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
 2026-08-21 16:33:10 [INFO] 
-[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HybricMamba/German/HybricMamba_best.pth
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/Light_HybricMamba/Ressult/TFJ/Light_HybricMamba/German/Light_HybricMamba_best.pth
 2026-08-21 16:33:10 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
 2026-08-21 16:33:10 [INFO] --> Epoch tiếp theo: 21
 2026-08-21 16:33:10 [INFO] --> Best Accuracy: 0.9636
@@ -97,7 +97,7 @@
 2026-08-21 16:49:29 [INFO] Epoch 27 | Acc: 0.9729 | Loss: 0.4401 | Eval Loss: 0.0937 | LR: 0.000100
 2026-08-21 16:49:29 [INFO] ✓ Saved best model: Acc=0.9729 at epoch 27
 2026-08-21 16:49:57 [INFO] ============================================================
-2026-08-21 16:49:57 [INFO] Starting training: HybricMamba
+2026-08-21 16:49:57 [INFO] Starting training: Light_HybricMamba
 2026-08-21 16:49:57 [INFO] Dataset: German
 2026-08-21 16:49:57 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
 2026-08-21 16:49:57 [INFO] Device: cuda
@@ -121,7 +121,7 @@
 2026-08-21 16:49:59 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
 2026-08-21 16:49:59 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
 2026-08-21 16:49:59 [INFO] 
-[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HybricMamba/German/HybricMamba_best.pth
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/Light_HybricMamba/Ressult/TFJ/Light_HybricMamba/German/Light_HybricMamba_best.pth
 2026-08-21 16:49:59 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
 2026-08-21 16:49:59 [INFO] --> Epoch tiếp theo: 28
 2026-08-21 16:49:59 [INFO] --> Best Accuracy: 0.9729
@@ -143,7 +143,7 @@
 2026-08-21 17:08:16 [INFO] Epoch 35 | Acc: 0.9742 | Loss: 0.4238 | Eval Loss: 0.0880 | LR: 0.000005
 2026-08-21 17:10:36 [INFO] Epoch 36 | Acc: 0.9743 | Loss: 0.4211 | Eval Loss: 0.0882 | LR: 0.000005
 2026-08-21 17:40:09 [INFO] ============================================================
-2026-08-21 17:40:09 [INFO] Starting training: HybricMamba
+2026-08-21 17:40:09 [INFO] Starting training: Light_HybricMamba
 2026-08-21 17:40:09 [INFO] Dataset: German
 2026-08-21 17:40:09 [INFO] Dataset path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
 2026-08-21 17:40:09 [INFO] Device: cuda
@@ -167,7 +167,7 @@
 2026-08-21 17:40:10 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
 2026-08-21 17:40:10 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
 2026-08-21 17:40:10 [INFO] 
-[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HybricMamba/German/HybricMamba_best.pth
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/Light_HybricMamba/Ressult/TFJ/Light_HybricMamba/German/Light_HybricMamba_best.pth
 2026-08-21 17:40:10 [INFO] --> Tìm thấy weights trong Key: 'model_state_dict'
 2026-08-21 17:40:10 [INFO] --> Epoch tiếp theo: 33
 2026-08-21 17:40:10 [INFO] --> Best Accuracy: 0.9745
@@ -184,7 +184,7 @@
 
 ============================================================
 TEST EVALUATION REPORT - 2026-08-25 23:42:44
-Checkpoint Path    : /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/LIGHT_HYBRIC_MAMBA/German/HybricMamba_best.pth
+Checkpoint Path    : /home/biu-linux/DeepLearning_Projects/DoAnNganh/Light_HybricMamba/Ressult/TFJ/LIGHT_HYBRIC_MAMBA/German/Light_HybricMamba_best.pth
 Total Test Samples : 83623
 Accuracy           : 97.48%
 F1-Score (Macro)   : 97.72%
