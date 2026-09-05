@@ -1,5 +1,6 @@
 import argparse
 import csv
+import glob
 import io
 import logging
 import math
@@ -7,10 +8,8 @@ import os
 import random
 import re
 import sys
+import tarfile
 
-# =================================================================
-# 1. BỔ SUNG ĐƯỜNG DẪN MODULE TRÊN KAGGLE
-# =================================================================
 sys.path.append("/kaggle/working")
 if os.path.exists("/kaggle/input"):
     sys.path.append("/kaggle/input")
@@ -28,13 +27,6 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-# Import TensorFlow để đọc file TFRecord
-try:
-    import tensorflow as tf
-    TF_AVAILABLE = True
-except ImportError:
-    TF_AVAILABLE = False
-
 from Dataloader.DATASET import TrafficSignDataset
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
@@ -50,12 +42,10 @@ def get_args():
     parser.add_argument('--csv_filename', default="", type=str)
     parser.add_argument('--class_num', default=1000, type=int)
 
-    # 📌 Đường dẫn dataset ImageNet-1k TFRecords trên Kaggle
     parser.add_argument('--root_dataset_path',
                         default="/kaggle/input/imagenet-1k-tfrecords-ilsvrc2012-part-0",
                         type=str)
 
-    # 📌 Thư mục lưu checkpoint & logs trên Kaggle Working
     parser.add_argument('--save_path',
                         default="/kaggle/working/Result",
                         type=str)
@@ -88,8 +78,8 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.7,
-            conv_frac=0.2,
+            ssm_frac=0.5,
+            conv_frac=0.3,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -101,8 +91,8 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
             ssm_ratio=1.5,
             mamba_blocks=(2, 2),
             cnn_blocks=(1, 2),
-            ssm_frac=0.6,
-            conv_frac=0.25,
+            ssm_frac=0.5,
+            conv_frac=0.3,
             use_aux=True,
         )
     elif name == "HEAVY_HYBRIC_MAMBA":
@@ -114,8 +104,8 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
             ssm_ratio=2.0,
             mamba_blocks=(2, 3),
             cnn_blocks=(2, 2),
-            ssm_frac=0.7,
-            conv_frac=0.2,
+            ssm_frac=0.5,
+            conv_frac=0.3,
             use_aux=True,
         )
     elif name == "SUPER_MAMBA_DEPT_4":
@@ -128,9 +118,11 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
     elif name in ["RESNET18", "ResNet18"]:
         return timm.create_model('resnet18', pretrained=pretrained, num_classes=num_classes)
     elif name in ["VIT_B", "ViT-B"]:
-        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes, img_size=img_size)
+        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes,
+                                 img_size=img_size)
     elif name in ["VIT_S", "ViT-S"]:
-        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes, img_size=img_size)
+        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes,
+                                 img_size=img_size)
     elif name in ["EFFICIENTNET_B0", "EfficientNet-B0"]:
         return timm.create_model('efficientnet_b0', pretrained=pretrained, num_classes=num_classes)
     elif name in ["MOBILENETV3_SMALL", "MobileNetV3-Small"]:
@@ -162,61 +154,203 @@ def get_transforms(img_size=224):
     return transform_train, transform_test
 
 
-# ================================= DATASET LOADER DÀNH CHO TFRECORDS =================================
+# ================================================================
+# WEBDATASET FORMAT DATASET
+# ================================================================
 
-class ImageNetTFRecordDataset(Dataset):
-    """Dataset đọc trực tiếp định dạng TFRecord không chứa đuôi mở rộng trên Kaggle"""
-
-    def __init__(self, root_dir=None, file_paths=None, transform=None, max_samples=None, desc="Loading TFRecords"):
+class WebDatasetImageNet(Dataset):
+    def __init__(self, root_path, split='train', transform=None, max_samples=None):
+        self.root_path = root_path
+        self.split = split
         self.transform = transform
         self.samples = []
 
-        if not TF_AVAILABLE:
-            raise ImportError("Vui lòng cài đặt TensorFlow để giải mã TFRecords!")
+        data_dir = os.path.join(root_path, split)
+        idx_dir = os.path.join(root_path, 'idx_files', split)
 
-        tfrec_files = []
-        if file_paths:
-            tfrec_files = file_paths
-        elif root_dir:
-            for root, _, files in os.walk(root_dir):
-                if "idx_files" in root:
-                    continue
-                for file in files:
-                    if not file.endswith('.idx'):
-                        tfrec_files.append(os.path.join(root, file))
+        if not os.path.exists(data_dir):
+            raise FileNotFoundError(f"Không tìm thấy thư mục: {data_dir}")
 
-        if not tfrec_files:
-            raise FileNotFoundError(f"Không tìm thấy file TFRecord trong {root_dir or file_paths}")
+        all_files = os.listdir(data_dir)
+        shard_files = []
 
-        feature_description = {
-            'image/encoded': tf.io.FixedLenFeature([], tf.string),
-            'image/class/label': tf.io.FixedLenFeature([], tf.int64),
-        }
+        for f in all_files:
+            if not f.endswith('.idx') and not f.endswith('.tar'):
+                shard_files.append(os.path.join(data_dir, f))
 
-        raw_dataset = tf.data.TFRecordDataset(tfrec_files)
-        for raw_record in tqdm(raw_dataset, desc=desc):
-            example = tf.io.parse_single_example(raw_record, feature_description)
-            img_bytes = example['image/encoded'].numpy()
-            label = int(example['image/class/label'].numpy())
+        if not shard_files:
+            shard_files = sorted(glob.glob(os.path.join(data_dir, '*.tar')))
 
-            if 0 < label <= 1000:
-                label -= 1
+        if not shard_files:
+            shard_files = sorted(glob.glob(os.path.join(data_dir, f'{split}-*-of-*')))
 
-            self.samples.append((img_bytes, label))
+        if not shard_files:
+            raise FileNotFoundError(f"Không tìm thấy shard files trong {data_dir}")
+
+        print(f"📁 Found {len(shard_files)} shard files for {split}")
+
+        for shard_path in tqdm(shard_files, desc=f"Loading {split} shards"):
+            shard_name = os.path.basename(shard_path)
+            idx_path = os.path.join(idx_dir, f"{shard_name}.idx")
+
+            if os.path.exists(idx_path):
+                self._load_from_idx(shard_path, idx_path)
+            else:
+                self._load_from_tar(shard_path)
+
             if max_samples and len(self.samples) >= max_samples:
                 break
+
+        print(f"✅ Loaded {len(self.samples)} samples for {split}")
+
+    def _load_from_idx(self, shard_path, idx_path):
+        offsets = []
+        with open(idx_path, 'r') as f:
+            for line in f:
+                if line.strip():
+                    parts = line.strip().split()
+                    if len(parts) >= 2:
+                        offset = int(parts[0])
+                        length = int(parts[1])
+                        offsets.append((offset, length))
+
+        for offset, length in offsets:
+            self.samples.append((shard_path, offset, length))
+
+    def _load_from_tar(self, shard_path):
+        try:
+            with tarfile.open(shard_path, 'r') as tar:
+                samples_dict = {}
+                for member in tar.getmembers():
+                    if member.isfile():
+                        name = member.name
+                        if '.' in name:
+                            key, ext = name.rsplit('.', 1)
+                            if key not in samples_dict:
+                                samples_dict[key] = {}
+                            samples_dict[key][ext.lower()] = member
+
+                for key, files in samples_dict.items():
+                    if any(ext in files for ext in ['jpg', 'jpeg', 'png']):
+                        self.samples.append((shard_path, key, files))
+        except Exception as e:
+            print(f"⚠️ Lỗi đọc tar {shard_path}: {e}")
 
     def __len__(self):
         return len(self.samples)
 
     def __getitem__(self, idx):
-        img_bytes, label = self.samples[idx]
-        image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
+        sample = self.samples[idx]
+
+        if len(sample) == 3 and isinstance(sample[1], int):
+            shard_path, offset, length = sample
+            image, label = self._read_from_offset(shard_path, offset, length)
+        else:
+            shard_path, key, files = sample
+            image, label = self._read_from_tar_entry(shard_path, files)
 
         if self.transform:
             image = self.transform(image)
 
         return image, label
+
+    def _read_from_offset(self, shard_path, offset, length):
+        try:
+            with open(shard_path, 'rb') as f:
+                f.seek(offset)
+                data = f.read(length)
+
+            with tarfile.open(fileobj=io.BytesIO(data), mode='r') as tar:
+                image = None
+                label = 0
+
+                for member in tar.getmembers():
+                    if member.isfile():
+                        ext = member.name.split('.')[-1].lower()
+                        if ext in ['jpg', 'jpeg', 'png']:
+                            img_data = tar.extractfile(member).read()
+                            image = Image.open(io.BytesIO(img_data)).convert('RGB')
+                        elif ext in ['cls', 'txt', 'label']:
+                            label_data = tar.extractfile(member).read()
+                            label = int(label_data.decode().strip())
+
+                if image is None:
+                    raise ValueError(f"Không tìm thấy ảnh tại offset {offset}")
+
+                return image, label
+
+        except Exception as e:
+            print(f"⚠️ Lỗi đọc sample: {e}")
+            return Image.new('RGB', (224, 224), color='black'), 0
+
+    def _read_from_tar_entry(self, shard_path, files):
+        try:
+            with tarfile.open(shard_path, 'r') as tar:
+                image = None
+                label = 0
+
+                for ext, member in files.items():
+                    if ext in ['jpg', 'jpeg', 'png']:
+                        img_data = tar.extractfile(member).read()
+                        image = Image.open(io.BytesIO(img_data)).convert('RGB')
+                    elif ext in ['cls', 'txt', 'label']:
+                        label_data = tar.extractfile(member).read()
+                        label = int(label_data.decode().strip())
+
+                if image is None:
+                    raise ValueError("Không tìm thấy ảnh")
+
+                return image, label
+
+        except Exception as e:
+            print(f"⚠️ Lỗi đọc sample: {e}")
+            return Image.new('RGB', (224, 224), color='black'), 0
+
+
+# ================================================================
+# DATALOADER PREPARE
+# ================================================================
+
+def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None):
+    set_seed(seed)
+    transform_train, transform_test = get_transforms(img_size)
+
+    train_dataset = WebDatasetImageNet(
+        root_path=root_path,
+        split='train',
+        transform=transform_train
+    )
+
+    val_dataset = WebDatasetImageNet(
+        root_path=root_path,
+        split='validation',
+        transform=transform_test
+    )
+
+    test_dataset = val_dataset
+    num_classes = 1000
+
+    log_msg = f"Dataset ImageNet-1k | Classes: {num_classes} | Train: {len(train_dataset)} | Val: {len(val_dataset)}"
+    print(log_msg)
+    if logger:
+        logger.info(log_msg)
+
+    num_workers = min(4, os.cpu_count() or 2)
+
+    train_loader = DataLoader(
+        train_dataset, batch_size=batchsize, shuffle=True,
+        num_workers=num_workers, pin_memory=True
+    )
+    val_loader = DataLoader(
+        val_dataset, batch_size=batchsize, shuffle=False,
+        num_workers=num_workers, pin_memory=True
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=batchsize, shuffle=False,
+        num_workers=num_workers, pin_memory=True
+    )
+
+    return train_loader, val_loader, test_loader, num_classes
 
 
 # ======================================== SET SEED & LOGS =====================================
@@ -250,98 +384,6 @@ def setup_logging(folder_path):
     logger.addHandler(sh)
 
     return logger
-
-
-# =============================================================== DATA LOADER PREPARE ======================================================
-
-def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None):
-    transform_train, transform_test = get_transforms(img_size)
-
-    # 📌 1. Quét toàn bộ file TFRecord (Bỏ qua thư mục idx_files và file .idx)
-    all_tfrec_files = []
-    for root, _, files in os.walk(root_path):
-        if "idx_files" in root:
-            continue
-        for file in files:
-            if not file.endswith('.idx'):
-                all_tfrec_files.append(os.path.join(root, file))
-
-    if not all_tfrec_files:
-        raise FileNotFoundError(f"Không tìm thấy file TFRecord hợp lệ nào trong {root_path}")
-
-    # 📌 2. Phân loại file train và validation dựa vào đường dẫn/tên file
-    train_files = [f for f in all_tfrec_files if "/train" in f or "train-" in os.path.basename(f)]
-    val_files = [f for f in all_tfrec_files if "/validation" in f or "/val" in f or "val-" in os.path.basename(f) or "validation-" in os.path.basename(f)]
-
-    # 📌 3. Trường hợp không phân biệt được bằng thư mục/tên file -> Tự động chia bằng train_test_split
-    if not train_files or not val_files:
-        log_msg = "⚠️ Không phân tách được tập train/val theo đường dẫn. Tiến hành đọc toàn bộ và tự động chia..."
-        print(log_msg)
-        if logger: logger.warning(log_msg)
-
-        full_dataset = ImageNetTFRecordDataset(file_paths=all_tfrec_files, transform=None)
-        indices = list(range(len(full_dataset)))
-        labels = [full_dataset.samples[i][1] for i in indices]
-
-        train_idx, val_idx = train_test_split(
-            indices, test_size=0.10, random_state=seed, shuffle=True, stratify=labels
-        )
-
-        class CustomSubset(Dataset):
-            def __init__(self, dataset, indices, transform=None):
-                self.dataset = dataset
-                self.indices = indices
-                self.transform = transform
-
-            def __getitem__(self, idx):
-                img_bytes, label = self.dataset.samples[self.indices[idx]]
-                image = Image.open(io.BytesIO(img_bytes)).convert('RGB')
-                if self.transform:
-                    image = self.transform(image)
-                return image, label
-
-            def __len__(self):
-                return len(self.indices)
-
-        train_dataset = CustomSubset(full_dataset, train_idx, transform=transform_train)
-        val_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
-        test_dataset = CustomSubset(full_dataset, val_idx, transform=transform_test)
-    else:
-        train_dataset = ImageNetTFRecordDataset(
-            file_paths=train_files,
-            transform=transform_train,
-            desc="Loading Train TFRecords"
-        )
-        val_dataset = ImageNetTFRecordDataset(
-            file_paths=val_files,
-            transform=transform_test,
-            desc="Loading Val TFRecords"
-        )
-        test_dataset = ImageNetTFRecordDataset(
-            file_paths=val_files,
-            transform=transform_test,
-            desc="Loading Test TFRecords"
-        )
-
-    num_classes = 1000
-    log_msg = f"Dataset ImageNet-1k | Số nhãn: {num_classes} | Train: {len(train_dataset)} | Val: {len(val_dataset)}"
-    print(log_msg)
-    if logger:
-        logger.info(log_msg)
-
-    num_workers = min(4, os.cpu_count() or 2)
-
-    train_loader = DataLoader(
-        train_dataset, batch_size=batchsize, shuffle=True, num_workers=num_workers, pin_memory=True
-    )
-    val_loader = DataLoader(
-        val_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers, pin_memory=True
-    )
-    test_loader = DataLoader(
-        test_dataset, batch_size=batchsize, shuffle=False, num_workers=num_workers, pin_memory=True
-    )
-
-    return train_loader, val_loader, test_loader, num_classes
 
 
 # =========================================================== LOAD CHECKPOINT ========================================================================
@@ -489,16 +531,18 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
         train_loss = running_train_loss / max(num_train_batches, 1)
         train_acc = train_correct / max(train_total, 1)
 
-        # Validation
+        # Validation (Đã bổ sung AMP Autocast)
         model.eval()
         val_correct, val_total, running_val_loss = 0, 0, 0.0
         with torch.no_grad():
             for x, y in val_loader:
                 x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
-                preds = model(x)
-                if isinstance(preds, tuple):
-                    preds = preds[0]
-                loss = criterion(preds, y)
+                with torch.amp.autocast('cuda', enabled=torch.cuda.is_available()):
+                    preds = model(x)
+                    if isinstance(preds, tuple):
+                        preds = preds[0]
+                    loss = criterion(preds, y)
+
                 running_val_loss += loss.item()
                 val_correct += (preds.argmax(dim=1) == y).sum().item()
                 val_total += y.size(0)
@@ -530,7 +574,7 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
                     f"⏹ Early stopping tại epoch {epoch} (không cải thiện sau {args.early_stop_patience} epoch, best={best_val_acc:.4f})")
                 break
 
-    # Evaluate on Test Set
+    # Evaluate on Test Set (Đã bổ sung AMP Autocast & zero_division cho F1)
     logger.info("Evaluating Best Model on TEST Set...")
     if os.path.exists(best_checkpoint_path):
         model, _, _ = load_checkpoint_safely(model, best_checkpoint_path, device, logger)
@@ -542,8 +586,9 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
     with torch.no_grad():
         for images, labels in test_loader:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-            outputs = model(images)
-            if isinstance(outputs, tuple): outputs = outputs[0]
+            with torch.amp.autocast('cuda', enabled=torch.cuda.is_available()):
+                outputs = model(images)
+                if isinstance(outputs, tuple): outputs = outputs[0]
 
             predicted = outputs.argmax(dim=1)
             test_correct += (predicted == labels).sum().item()
@@ -552,8 +597,8 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
             predicted_labels.extend(predicted.cpu().numpy())
 
     test_acc = test_correct / max(test_total, 1)
-    f1_macro = f1_score(true_labels, predicted_labels, average='macro')
-    f1_weighted = f1_score(true_labels, predicted_labels, average='weighted')
+    f1_macro = f1_score(true_labels, predicted_labels, average='macro', zero_division=0)
+    f1_weighted = f1_score(true_labels, predicted_labels, average='weighted', zero_division=0)
 
     logger.info(f"🎯 [TEST RESULT] Test Acc: {test_acc:.4f} | F1-Macro: {f1_macro:.4f} | F1-Weighted: {f1_weighted:.4f}")
 
@@ -563,13 +608,12 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 if __name__ == "__main__":
     models_to_train = [
         "HEAVY_HYBRIC_MAMBA",
-        "MEDIUM_HYBRIC_MAMBA",
-        "LIGHT_HYBRIC_MAMBA",
+        # "MEDIUM_HYBRIC_MAMBA",
+        # "LIGHT_HYBRIC_MAMBA",
     ]
 
     args = get_args()
 
-    # 📌 TỰ ĐỘNG KHỞI TẠO VÀ TÌM KIẾM ĐƯỜNG DẪN DATASET CHÍNH XÁC TRÊN KAGGLE
     input_path = "/kaggle/input"
     if os.path.exists(input_path):
         available_dirs = os.listdir(input_path)
@@ -593,6 +637,10 @@ if __name__ == "__main__":
             args.dataset_name,
             f"{args.model_name}_best.pth"
         )
+
+        # Bật flag resume để nạp lại checkpoint nếu tồn tại
+        if os.path.exists(args.resume_path):
+            args.resume = True
 
         folder_path = os.path.join(args.save_path, args.model_name, args.dataset_name)
         logger = setup_logging(folder_path)

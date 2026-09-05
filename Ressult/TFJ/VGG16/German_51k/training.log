@@ -174,3 +174,17 @@
 2026-09-06 01:23:23 [INFO] Device: cuda
 2026-09-06 01:23:23 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
 2026-09-06 01:23:23 [INFO] ============================================================
+2026-09-06 01:25:16 [INFO] Epoch 000 | Train Loss: 0.7191 | Train Acc: 0.7753 | Val Loss: 0.1481 | Val Acc: 0.9615
+2026-09-06 01:25:19 [INFO] ✓ Saved best model: Val Acc=0.9615 at epoch 0
+2026-09-06 01:27:10 [INFO] Epoch 001 | Train Loss: 0.3660 | Train Acc: 0.9115 | Val Loss: 0.1571 | Val Acc: 0.9636
+2026-09-06 01:27:12 [INFO] ✓ Saved best model: Val Acc=0.9636 at epoch 1
+2026-09-06 01:29:01 [INFO] Epoch 002 | Train Loss: 0.3428 | Train Acc: 0.9296 | Val Loss: 0.1439 | Val Acc: 0.9742
+2026-09-06 01:29:03 [INFO] ✓ Saved best model: Val Acc=0.9742 at epoch 2
+2026-09-06 01:30:51 [INFO] Epoch 003 | Train Loss: 0.4163 | Train Acc: 0.9172 | Val Loss: 0.2456 | Val Acc: 0.9424
+2026-09-06 01:32:39 [INFO] Epoch 004 | Train Loss: 0.6199 | Train Acc: 0.9080 | Val Loss: 0.2053 | Val Acc: 0.9398
+2026-09-06 01:34:27 [INFO] Epoch 005 | Train Loss: 0.3795 | Train Acc: 0.9360 | Val Loss: 0.1278 | Val Acc: 0.9744
+2026-09-06 01:34:29 [INFO] ✓ Saved best model: Val Acc=0.9744 at epoch 5
+2026-09-06 01:36:15 [INFO] Epoch 006 | Train Loss: 0.3055 | Train Acc: 0.9506 | Val Loss: 0.0413 | Val Acc: 0.9928
+2026-09-06 01:36:17 [INFO] ✓ Saved best model: Val Acc=0.9928 at epoch 6
+2026-09-06 01:38:02 [INFO] Epoch 007 | Train Loss: 0.2566 | Train Acc: 0.9630 | Val Loss: 0.0638 | Val Acc: 0.9839
+2026-09-06 01:39:49 [INFO] Epoch 008 | Train Loss: 0.2382 | Train Acc: 0.9654 | Val Loss: 0.1262 | Val Acc: 0.9690
