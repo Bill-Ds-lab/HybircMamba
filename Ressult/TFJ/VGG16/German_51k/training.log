@@ -188,3 +188,47 @@
 2026-09-06 01:36:17 [INFO] ✓ Saved best model: Val Acc=0.9928 at epoch 6
 2026-09-06 01:38:02 [INFO] Epoch 007 | Train Loss: 0.2566 | Train Acc: 0.9630 | Val Loss: 0.0638 | Val Acc: 0.9839
 2026-09-06 01:39:49 [INFO] Epoch 008 | Train Loss: 0.2382 | Train Acc: 0.9654 | Val Loss: 0.1262 | Val Acc: 0.9690
+2026-09-06 01:41:35 [INFO] Epoch 009 | Train Loss: 0.2921 | Train Acc: 0.9642 | Val Loss: 0.1186 | Val Acc: 0.9744
+2026-09-06 01:43:19 [INFO] Epoch 010 | Train Loss: 0.2038 | Train Acc: 0.9698 | Val Loss: 0.0449 | Val Acc: 0.9922
+2026-09-06 01:43:47 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-06 01:43:47 [INFO] Dữ liệu đã chia -> Train (70%): 36287 | Val (15%): 7776 | Test (15%): 7776
+2026-09-06 01:43:47 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-06 01:43:49 [INFO]   Batch 0: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:43:49 [INFO]   Batch 1: 26 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:43:49 [INFO]   Batch 2: 31 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-06 01:43:49 [INFO]   Batch 3: 27 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:43:49 [INFO]   Batch 4: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:43:49 [INFO] ✅ Shuffle tốt! Trung bình 28.4 classes/batch
+2026-09-06 01:43:50 [INFO] ============================================================
+2026-09-06 01:43:50 [INFO] Starting training: VGG16
+2026-09-06 01:43:50 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k
+2026-09-06 01:43:50 [INFO] Device: cuda
+2026-09-06 01:43:50 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-06 01:43:50 [INFO] ============================================================
+2026-09-06 01:43:50 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/VGG16/German_51k/VGG16_best.pth
+2026-09-06 01:44:16 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-06 01:44:16 [INFO] Dữ liệu đã chia -> Train (70%): 36287 | Val (15%): 7776 | Test (15%): 7776
+2026-09-06 01:44:16 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-06 01:44:16 [INFO]   Batch 0: 26 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:44:16 [INFO]   Batch 1: 32 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-06 01:44:16 [INFO]   Batch 2: 27 classes (first 5: [1, 2, 4, 5, 6])
+2026-09-06 01:44:16 [INFO]   Batch 3: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-06 01:44:16 [INFO]   Batch 4: 27 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 01:44:16 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-09-06 01:44:17 [INFO] ============================================================
+2026-09-06 01:44:17 [INFO] Starting training: VGG16
+2026-09-06 01:44:17 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k
+2026-09-06 01:44:17 [INFO] Device: cuda
+2026-09-06 01:44:17 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-06 01:44:17 [INFO] ============================================================
+2026-09-06 01:44:17 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/VGG16/German_51k/VGG16_best.pth
+2026-09-06 01:46:03 [INFO] Epoch 007 | Train Loss: 0.2342 | Train Acc: 0.9617 | Val Loss: 0.0614 | Val Acc: 0.9878
+2026-09-06 01:46:03 [INFO] ⏹ Early stopping tại epoch 7 (không cải thiện sau 1 epoch, best=0.9928)
+2026-09-06 01:46:03 [INFO] Evaluating Best Model on TEST Set...
+2026-09-06 01:46:03 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/VGG16/German_51k/VGG16_best.pth
+2026-09-06 01:46:07 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9933 | F1-Macro: 0.9886 | F1-Weighted: 0.9934

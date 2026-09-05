@@ -43,7 +43,7 @@ def get_args():
     parser.add_argument('--class_num', default=1000, type=int)
 
     parser.add_argument('--root_dataset_path',
-                        default="/kaggle/input/imagenet-1k-tfrecords-ilsvrc2012-part-0",
+                        default="/kaggle/input/datasets/hmendonca/imagenet-1k-tfrecords-ilsvrc2012-part-0",
                         type=str)
 
     parser.add_argument('--save_path',

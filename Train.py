@@ -45,7 +45,7 @@ def get_args():
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=30, type=int)
+    parser.add_argument('--early_stop_patience', default=1, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
