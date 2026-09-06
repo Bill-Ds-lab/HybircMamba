@@ -1,18 +1,9 @@
 import argparse
 import csv
-import glob
-import io
 import logging
-import math
 import os
 import random
 import re
-import sys
-import tarfile
-
-sys.path.append("/kaggle/working")
-if os.path.exists("/kaggle/input"):
-    sys.path.append("/kaggle/input")
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,55 +13,60 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
-from sklearn.metrics import confusion_matrix, f1_score
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-
+from sklearn.metrics import confusion_matrix, f1_score
 from Dataloader.DATASET import TrafficSignDataset
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
 
 
-# ================================================================= SET ARGS =======================================
+# =================================================================SET Args =======================================
 
 def get_args():
-    parser = argparse.ArgumentParser(description="ImageNet-1k Training with PyTorch on Kaggle")
+    parser = argparse.ArgumentParser(description="Traffic Sign Recognition Training with Mamba")
 
-    parser.add_argument('--model_name', default="RESNET18", type=str)
-    parser.add_argument('--dataset_name', default="ImageNet-1k", type=str)
-    parser.add_argument('--csv_filename', default="", type=str)
-    parser.add_argument('--class_num', default=1000, type=int)
-
+    parser.add_argument('--model_name', default="LIGHT_HYBRIC_MAMBA", type=str)
+    # Hỗ trợ: "German" (folder root/<class>), "German_CSV" (root/Train.csv), "Belgium" (root/Train/<class> + root/Test/<class>)
+    parser.add_argument('--dataset_name', default="German", type=str,
+                        choices=["German", "German_CSV", "Belgium"])
+    parser.add_argument('--csv_filename', default="Train.csv", type=str,
+                        help="Chỉ dùng khi dataset_name=German_CSV")
+    parser.add_argument('--class_num', default=43, type=int)
     parser.add_argument('--root_dataset_path',
-                        default="/kaggle/input/datasets/hmendonca/imagenet-1k-tfrecords-ilsvrc2012-part-0",
+                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
                         type=str)
 
     parser.add_argument('--save_path',
-                        default="/kaggle/working/Result",
+                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ",
                         type=str)
 
-    parser.add_argument('--picture_size', default=224, type=int)
-    parser.add_argument('--early_stop_patience', default=10, type=int)
+    parser.add_argument('--picture_size', default=32, type=int)
+
+    parser.add_argument('--early_stop_patience', default=15, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
-    parser.add_argument('--num_epoch', default=50, type=int)
+    parser.add_argument('--num_epoch', default=130, type=int)
     parser.add_argument('--lr', default=1e-3, type=float)
+    parser.add_argument('--finetune_lr', default=1e-4, type=float)
     parser.add_argument('--min_lr', default=1e-6, type=float)
     parser.add_argument('--weight_decay', default=0.02, type=float)
     parser.add_argument('--clip_grad', default=5.0, type=float)
-    parser.add_argument('--label_smoothing', default=0.1, type=float)
+    parser.add_argument('--label_smoothing', default=0.0, type=float)
 
     parser.add_argument('--resume', action='store_true', default=False)
-    parser.add_argument('--resume_path', default="", type=str)
+    parser.add_argument('--resume_path',
+                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/Super_Mamba_dim_3/German/Super_Mamba_dim_3_best.pth",
+                        type=str)
 
-    args, _ = parser.parse_known_args()
-    return args
+    return parser.parse_args()
 
 
-# ================================================================= BUILD MODEL ==============================================
+# =================================================================BUILD MODEL ==============================================
 
-def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
+def build_Model(name, num_classes, pretrained=True):
     if name == "LIGHT_HYBRIC_MAMBA":
         return HybricMamba(
             dims=(3, 16, 32, 56, 96),
@@ -78,8 +74,8 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.5,
-            conv_frac=0.3,
+            ssm_frac=0.3,
+            conv_frac=0.5,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -91,8 +87,8 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
             ssm_ratio=1.5,
             mamba_blocks=(2, 2),
             cnn_blocks=(1, 2),
-            ssm_frac=0.5,
-            conv_frac=0.3,
+            ssm_frac=0.3,
+            conv_frac=0.5,
             use_aux=True,
         )
     elif name == "HEAVY_HYBRIC_MAMBA":
@@ -113,40 +109,43 @@ def build_Model(name, num_classes=1000, pretrained=True, img_size=224):
     elif name == "SUPER_MAMBA_DEPT_3":
         return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
 
+    # 10 Mô hình Benchmark chuẩn
     elif name in ["VGG16", "VGG-16"]:
         return timm.create_model('vgg16', pretrained=pretrained, num_classes=num_classes)
     elif name in ["RESNET18", "ResNet18"]:
         return timm.create_model('resnet18', pretrained=pretrained, num_classes=num_classes)
     elif name in ["VIT_B", "ViT-B"]:
-        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes,
-                                 img_size=img_size)
+        return timm.create_model('vit_base_patch16_224', pretrained=pretrained, num_classes=num_classes,img_size=32)
     elif name in ["VIT_S", "ViT-S"]:
-        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes,
-                                 img_size=img_size)
+        return timm.create_model('vit_small_patch16_224', pretrained=pretrained, num_classes=num_classes,img_size=32)
     elif name in ["EFFICIENTNET_B0", "EfficientNet-B0"]:
         return timm.create_model('efficientnet_b0', pretrained=pretrained, num_classes=num_classes)
+
     elif name in ["MOBILENETV3_SMALL", "MobileNetV3-Small"]:
         return timm.create_model('mobilenetv3_small_100', pretrained=pretrained, num_classes=num_classes)
+
     elif name in ["GHOSTNET", "GhostNet"]:
         return timm.create_model('ghostnet_100', pretrained=pretrained, num_classes=num_classes)
+
     else:
         raise ValueError(f"Tên mô hình '{name}' không tồn tại.")
 
 
-# ================================== TRANSFORMS CHUẨN IMAGENET =================================================
+# ================================== TRANSFORMS =================================================================
 
-def get_transforms(img_size=224):
+def get_transforms(img_size=32):
     transform_train = transforms.Compose([
-        transforms.RandomResizedCrop(img_size),
-        transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.Resize((img_size, img_size)),
+        transforms.RandomRotation(degrees=12),
+        transforms.RandomAffine(degrees=0, translate=(0.08, 0.08), scale=(0.95, 1.05)),
+        transforms.ColorJitter(brightness=0.25, contrast=0.25, saturation=0.15),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        transforms.RandomErasing(p=0.2, scale=(0.02, 0.06), value=0)
     ])
 
     transform_test = transforms.Compose([
-        transforms.Resize(int(img_size * 1.14)),
-        transforms.CenterCrop(img_size),
+        transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     ])
@@ -154,172 +153,7 @@ def get_transforms(img_size=224):
     return transform_train, transform_test
 
 
-# ================================================================
-# WEBDATASET FORMAT DATASET
-# ================================================================
-class WebDatasetImageNet(Dataset):
-    def __init__(self, root_path, split='train', transform=None, max_samples=None):
-        self.root_path = root_path
-        self.split = split
-        self.transform = transform
-        self.samples = []
-
-        # 1. Tự động kiểm tra nếu Dataset là cấu trúc thư mục ảnh chuẩn (ImageFolder)
-        split_dir = os.path.join(root_path, split) if os.path.exists(os.path.join(root_path, split)) else root_path
-        if os.path.exists(split_dir):
-            subdirs = [d for d in os.listdir(split_dir) if os.path.isdir(os.path.join(split_dir, d))]
-            if len(subdirs) > 10:
-                from torchvision.datasets import ImageFolder
-                self.dataset = ImageFolder(root=split_dir, transform=transform)
-                self.use_image_folder = True
-                print(f"✅ Phát hiện ImageFolder tại {split_dir} với {len(self.dataset)} ảnh.")
-                return
-
-        self.use_image_folder = False
-
-        # 2. Xử lý dạng WebDataset (.tar / .idx)
-        data_dir = split_dir
-        idx_dir = os.path.join(root_path, 'idx_files', split)
-
-        shard_files = sorted(glob.glob(os.path.join(data_dir, '*.tar'))) + sorted(
-            glob.glob(os.path.join(data_dir, f'{split}-*')))
-        shard_files = [f for f in shard_files if not f.endswith('.idx')]
-
-        if not shard_files:
-            raise FileNotFoundError(f"Không tìm thấy file .tar hoặc thư mục ảnh hợp lệ tại: {split_dir}")
-
-        for shard_path in shard_files:
-            shard_name = os.path.basename(shard_path)
-            idx_path = os.path.join(idx_dir, f"{shard_name}.idx")
-
-            if os.path.exists(idx_path):
-                self._load_from_idx(shard_path, idx_path)
-            else:
-                self._load_from_tar(shard_path)
-
-            if max_samples and len(self.samples) >= max_samples:
-                break
-
-    def _load_from_idx(self, shard_path, idx_path):
-        with open(idx_path, 'r') as f:
-            for line in f:
-                parts = line.strip().split()
-                if len(parts) >= 2:
-                    offset, length = int(parts[0]), int(parts[1])
-                    label = int(parts[2]) if len(parts) >= 3 else 0
-                    self.samples.append((shard_path, offset, length, label))
-
-    def _load_from_tar(self, shard_path):
-        try:
-            with tarfile.open(shard_path, 'r:*') as tar:
-                samples_dict = {}
-                for member in tar.getmembers():
-                    if member.isfile() and '.' in member.name:
-                        key, ext = member.name.rsplit('.', 1)
-                        samples_dict.setdefault(key, {})[ext.lower()] = member
-
-                for key, files in samples_dict.items():
-                    if any(ext in files for ext in ['jpg', 'jpeg', 'png']):
-                        self.samples.append((shard_path, key, files))
-        except Exception as e:
-            print(f"⚠️ Không thể đọc file tar {shard_path}: {e}")
-
-    def __len__(self):
-        if self.use_image_folder:
-            return len(self.dataset)
-        return len(self.samples)
-
-    def __getitem__(self, idx):
-        if self.use_image_folder:
-            return self.dataset[idx]
-
-        sample = self.samples[idx]
-
-        if len(sample) == 4 and isinstance(sample[1], int):
-            shard_path, offset, length, label = sample
-            image = self._read_from_offset(shard_path, offset, length)
-        else:
-            shard_path, key, files = sample
-            image, label = self._read_from_tar_entry(shard_path, files)
-
-        if self.transform and image is not None:
-            image = self.transform(image)
-
-        return image, label
-
-    def _read_from_offset(self, shard_path, offset, length):
-        try:
-            with open(shard_path, 'rb') as f:
-                f.seek(offset)
-                data = f.read(length)
-            # Decode byte ảnh trực tiếp bằng PIL
-            return Image.open(io.BytesIO(data)).convert('RGB')
-        except Exception:
-            return Image.new('RGB', (224, 224), color='black')
-
-    def _read_from_tar_entry(self, shard_path, files):
-        try:
-            with tarfile.open(shard_path, 'r:*') as tar:
-                image, label = None, 0
-                for ext, member in files.items():
-                    if ext in ['jpg', 'jpeg', 'png']:
-                        img_data = tar.extractfile(member).read()
-                        image = Image.open(io.BytesIO(img_data)).convert('RGB')
-                    elif ext in ['cls', 'txt', 'label']:
-                        label_data = tar.extractfile(member).read()
-                        label = int(label_data.decode().strip())
-                if image is None:
-                    image = Image.new('RGB', (224, 224), color='black')
-                return image, label
-        except Exception:
-            return Image.new('RGB', (224, 224), color='black'), 0
-# ================================================================
-# DATALOADER PREPARE
-# ================================================================
-
-def dataloader_prepare(root_path, batchsize, img_size=224, seed=42, logger=None):
-    set_seed(seed)
-    transform_train, transform_test = get_transforms(img_size)
-
-    train_dataset = WebDatasetImageNet(
-        root_path=root_path,
-        split='train',
-        transform=transform_train
-    )
-
-    val_dataset = WebDatasetImageNet(
-        root_path=root_path,
-        split='validation',
-        transform=transform_test
-    )
-
-    test_dataset = val_dataset
-    num_classes = 1000
-
-    log_msg = f"Dataset ImageNet-1k | Classes: {num_classes} | Train: {len(train_dataset)} | Val: {len(val_dataset)}"
-    print(log_msg)
-    if logger:
-        logger.info(log_msg)
-
-    num_workers = min(4, os.cpu_count() or 2)
-
-    train_loader = DataLoader(
-        train_dataset, batch_size=batchsize, shuffle=True,
-        num_workers=num_workers, pin_memory=True
-    )
-    val_loader = DataLoader(
-        val_dataset, batch_size=batchsize, shuffle=False,
-        num_workers=num_workers, pin_memory=True
-    )
-    test_loader = DataLoader(
-        test_dataset, batch_size=batchsize, shuffle=False,
-        num_workers=num_workers, pin_memory=True
-    )
-
-    return train_loader, val_loader, test_loader, num_classes
-
-
-# ======================================== SET SEED & LOGS =====================================
+# ======================================== SET SEED =====================================
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -330,6 +164,8 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
+# ================================================== SET LOG ================================================
+
 def setup_logging(folder_path):
     os.makedirs(folder_path, exist_ok=True)
     log_file = os.path.join(folder_path, 'training.log')
@@ -339,7 +175,10 @@ def setup_logging(folder_path):
     logger.handlers.clear()
     logger.propagate = False
 
-    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    formatter = logging.Formatter(
+        '%(asctime)s [%(levelname)s] %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
 
     fh = logging.FileHandler(log_file)
     fh.setFormatter(formatter)
@@ -352,15 +191,114 @@ def setup_logging(folder_path):
     return logger
 
 
-# =========================================================== LOAD CHECKPOINT ========================================================================
+# =================================== DATASET CLASS (DUY NHẤT) =================================================
 
+def natural_sort_key(s):
+    return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', str(s))]
+
+
+IMG_EXTS = ('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.ppm')
+
+
+
+# =============================================================== DATA LOADER FACTORY ======================================================
+
+def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32, seed=42, logger=None):
+
+    transform_train, transform_test = get_transforms(img_size)
+    dataset_class = type(full_dataset)
+
+    num_classes = len(full_dataset.class_to_idx)
+    log_msg = f"Dataset: {dataset_name} | Số nhãn (classes): {num_classes} | Tổng số ảnh: {len(full_dataset)}"
+    print(log_msg)
+    if logger:
+        logger.info(log_msg)
+
+    # 2. Split dataset theo Stratified Split
+    indices = list(range(len(full_dataset)))
+    labels = [full_dataset.class_to_idx[full_dataset.samples[i][1]] for i in indices]
+
+    train_idx, temp_idx = train_test_split(
+        indices, test_size=0.30, random_state=seed, shuffle=True, stratify=labels
+    )
+    temp_labels = [labels[i] for i in temp_idx]
+
+    val_idx, test_idx = train_test_split(
+        temp_idx, test_size=0.50, random_state=seed, shuffle=True, stratify=temp_labels
+    )
+
+    train_samples = [full_dataset.samples[i] for i in train_idx]
+    val_samples = [full_dataset.samples[i] for i in val_idx]
+    test_samples = [full_dataset.samples[i] for i in test_idx]
+
+    # 3. Khởi tạo Dataset thành phần (chỉ copy samples có sẵn, không quét lại ổ đĩa)
+    train_dataset = dataset_class(
+        root=root, transform=transform_train, samples=train_samples,
+        class_to_idx=full_dataset.class_to_idx, shuffle_samples=True
+    )
+    val_dataset = dataset_class(
+        root=root, transform=transform_test, samples=val_samples,
+        class_to_idx=full_dataset.class_to_idx, shuffle_samples=False
+    )
+    test_dataset = dataset_class(
+        root=root, transform=transform_test, samples=test_samples,
+        class_to_idx=full_dataset.class_to_idx, shuffle_samples=False
+    )
+
+    # 4. Tạo DataLoader
+    train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=6, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=6, pin_memory=True)
+    test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=6, pin_memory=True)
+
+    log_msg = f"Dữ liệu đã chia -> Train (70%): {len(train_dataset)} | Val (15%): {len(val_dataset)} | Test (15%): {len(test_dataset)}"
+    print(log_msg)
+    if logger:
+        logger.info(log_msg)
+
+    check_batch_distribution(train_loader, num_batches=5, logger=logger)
+
+    return train_loader, val_loader, test_loader, num_classes
+
+
+def check_batch_distribution(dataloader, num_batches=5, logger=None):
+    log_msg = "\n🔍 Kiểm tra phân bố class trong batch:"
+    print(log_msg)
+    if logger:
+        logger.info(log_msg)
+
+    class_counts = []
+    for i, (_, labels) in enumerate(dataloader):
+        if i >= num_batches:
+            break
+        unique_classes = torch.unique(labels).tolist()
+        class_counts.append(len(unique_classes))
+        log_msg = f"  Batch {i}: {len(unique_classes)} classes (first 5: {unique_classes[:5]})"
+        print(log_msg)
+        if logger:
+            logger.info(log_msg)
+
+    avg_classes = np.mean(class_counts) if class_counts else 0
+    if avg_classes < 10:
+        log_msg = f"⚠️ WARNING: Trung bình {avg_classes:.1f} classes/batch - Dữ liệu chưa được trộn đều!"
+        print(log_msg)
+        if logger:
+            logger.warning(log_msg)
+    else:
+        log_msg = f"✅ Shuffle tốt! Trung bình {avg_classes:.1f} classes/batch"
+        print(log_msg)
+        if logger:
+            logger.info(log_msg)
+
+
+# =========================================================== LOAD CHECKPOINT ========================================================================
+"""
 def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimizer=None, scaler=None):
     log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
     print(log_msg)
     if logger:
         logger.info(log_msg)
 
-    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
     state_dict = None
     if isinstance(checkpoint, dict):
@@ -373,7 +311,11 @@ def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimize
     else:
         state_dict = checkpoint
 
-    clean_state_dict = {k.replace("module.", "") if k.startswith("module.") else k: v for k, v in state_dict.items()}
+    clean_state_dict = {}
+    for k, v in state_dict.items():
+        name = k.replace("module.", "") if k.startswith("module.") else k
+        clean_state_dict[name] = v
+
     missing_keys, unexpected_keys = model.load_state_dict(clean_state_dict, strict=False)
 
     if len(missing_keys) > 0 and logger:
@@ -397,9 +339,149 @@ def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimize
     best_val_acc = checkpoint.get('best_val_acc', 0.0) if isinstance(checkpoint, dict) else 0.0
 
     return model, start_epoch, best_val_acc
+"""
+def load_checkpoint_safely(
+    model,
+    checkpoint_path,
+    device,
+    logger=None,
+    optimizer=None,
+    scaler=None
+):
+    log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
+    print(log_msg)
 
+    if logger:
+        logger.info(log_msg)
+
+    # =========================================================
+    # LOAD CHECKPOINT TRÊN CPU
+    # =========================================================
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location="cpu",
+        weights_only=False
+    )
+
+    # =========================================================
+    # LẤY MODEL STATE
+    # =========================================================
+    state_dict = None
+
+    if isinstance(checkpoint, dict):
+        for key in [
+            'model_state_dict',
+            'state_dict',
+            'model',
+            'net'
+        ]:
+            if key in checkpoint:
+                state_dict = checkpoint[key]
+                break
+
+        if state_dict is None:
+            state_dict = checkpoint
+    else:
+        state_dict = checkpoint
+
+    # =========================================================
+    # REMOVE "module."
+    # =========================================================
+    clean_state_dict = {}
+
+    for k, v in state_dict.items():
+        name = k.replace("module.", "") if k.startswith("module.") else k
+        clean_state_dict[name] = v
+
+    # =========================================================
+    # LOAD MODEL WEIGHT
+    # =========================================================
+    missing_keys, unexpected_keys = model.load_state_dict(
+        clean_state_dict,
+        strict=False
+    )
+
+    if len(missing_keys) > 0 and logger:
+        logger.warning(
+            f"⚠️ Thiếu {len(missing_keys)} keys trong weights!"
+        )
+
+    if len(unexpected_keys) > 0 and logger:
+        logger.warning(
+            f"⚠️ Thừa {len(unexpected_keys)} keys không khớp mô hình!"
+        )
+
+    # =========================================================
+    # CHỈ LOAD OPTIMIZER KHI RESUME TRAINING
+    # =========================================================
+    if (
+        optimizer is not None
+        and isinstance(checkpoint, dict)
+        and 'optimizer_state_dict' in checkpoint
+    ):
+        try:
+            optimizer.load_state_dict(
+                checkpoint['optimizer_state_dict']
+            )
+        except Exception as e:
+            if logger:
+                logger.warning(
+                    f"⚠️ Không thể khôi phục optimizer state: {e}"
+                )
+
+    # =========================================================
+    # LOAD SCALER KHI RESUME TRAINING
+    # =========================================================
+    if (
+        scaler is not None
+        and isinstance(checkpoint, dict)
+        and 'scaler_state_dict' in checkpoint
+    ):
+        try:
+            scaler.load_state_dict(
+                checkpoint['scaler_state_dict']
+            )
+        except Exception as e:
+            if logger:
+                logger.warning(
+                    f"⚠️ Không thể khôi phục scaler state: {e}"
+                )
+
+    start_epoch = (
+        checkpoint.get('epoch', -1) + 1
+        if isinstance(checkpoint, dict)
+        else 0
+    )
+
+    best_val_acc = (
+        checkpoint.get('best_val_acc', 0.0)
+        if isinstance(checkpoint, dict)
+        else 0.0
+    )
+
+    del checkpoint
+    del state_dict
+    del clean_state_dict
+
+    return model, start_epoch, best_val_acc
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
+"""
+def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
+    if epoch < 5:
+        return base_lr * (epoch + 1) / 5
+    elif epoch < 35:
+        lr = base_lr
+    elif epoch < 60:
+        lr = base_lr * 0.1
+    elif epoch < 80:
+        lr = base_lr * 0.01
+    else:
+        lr = base_lr * 0.001
+
+    return max(lr, min_lr)
+"""
+import math
 
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, total_epochs=50):
     warmup_epochs = 5
@@ -409,8 +491,123 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, total_epochs=50):
     progress = (epoch - warmup_epochs) / max(1, (total_epochs - warmup_epochs))
     lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + np.cos(np.pi * progress))
     return max(lr, min_lr)
+"""
+def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5, total_epochs=100):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
 
+    # Cosine decay từ base_lr xuống min_lr
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    cos_factor = 0.5 * (1 + math.cos(math.pi * progress))
+    return min_lr + (base_lr - min_lr) * cos_factor
+    """
+import math
+"""def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5):
 
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+
+    e = epoch - warmup_epochs
+    T = total_epochs - warmup_epochs
+
+    # Warm restarts: first cycle length T0, then doubles
+    T0 = 20  # length of first cycle (tune: 15-25 works well for ~130 epoch runs)
+    cycle_len = T0
+    t = e
+    while t >= cycle_len:
+        t -= cycle_len
+        cycle_len *= 2  # T_mult = 2
+
+    cos_inner = math.pi * t / cycle_len
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(cos_inner))
+    return max(lr, min_lr)
+    """
+import math
+"""
+def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6,
+           warmup_epochs=5, T0=20, decay_factor=0.6):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    e = epoch - warmup_epochs
+    cycle_len = T0
+    t = e
+    cycle_idx = 0
+    while t >= cycle_len:
+        t -= cycle_len
+        cycle_len *= 2
+        cycle_idx += 1
+    peak_lr = base_lr * (decay_factor ** cycle_idx)
+    cos_inner = math.pi * t / cycle_len
+    lr = min_lr + 0.5 * (peak_lr - min_lr) * (1 + math.cos(cos_inner))
+    return max(lr, min_lr)
+    """
+import math
+"""
+def get_lr(
+    epoch,
+    total_epochs=100,
+    base_lr=3e-4,
+    min_lr=1e-6,
+    warmup_epochs=8
+):
+    # Warmup
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+
+    # Cosine decay
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (
+        1 + math.cos(math.pi * progress)
+    )
+
+    return max(lr, min_lr)
+"""
+"""
+def get_lr(
+    epoch,
+    total_epochs=100,
+    base_lr=1e-4,        # giảm từ 3e-4 xuống 1e-4
+    min_lr=1e-6,
+    warmup_epochs=12      # tăng warmup dài hơn (10-15% tổng epoch)
+):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (
+        1 + math.cos(math.pi * progress)
+    )
+    return max(lr, min_lr)
+    """
+"""
+def get_lr(
+    epoch,
+    total_epochs=150,      # tăng từ 100
+    base_lr=1.5e-3,
+    min_lr=1e-6,
+    warmup_epochs=8
+):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
+    return max(lr, min_lr)
+    """
+import math
+"""
+def get_lr(
+    epoch,
+    total_epochs=120,
+    base_lr=1e-3,
+    min_lr=1e-6,
+    warmup_epochs=6
+):
+    if epoch < warmup_epochs:
+        return base_lr * (epoch + 1) / warmup_epochs
+    progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
+    return max(lr, min_lr)
+    """
 # ======================================================================== TRAIN AND VAL ===============================================
 
 def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logger):
@@ -435,6 +632,8 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
     start_epoch = 0
     best_val_acc = 0.0
+    #base_lr = args.finetune_lr if args.resume and os.path.exists(args.resume_path) else args.lr
+
     base_lr = args.lr
     optimizer = torch.optim.AdamW(model.parameters(), lr=base_lr, weight_decay=args.weight_decay)
 
@@ -445,9 +644,9 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
     best_checkpoint_path = os.path.join(folder_path, f"{model_name}_best.pth")
     patience_counter = 0
-
+    early_stop_patience=args.early_stop_patience
     for epoch in range(start_epoch, args.num_epoch):
-        current_lr = get_lr(epoch, base_lr, min_lr=args.min_lr, total_epochs=args.num_epoch)
+        current_lr = get_lr(epoch, base_lr)
         for param_group in optimizer.param_groups:
             param_group['lr'] = current_lr
 
@@ -497,18 +696,16 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
         train_loss = running_train_loss / max(num_train_batches, 1)
         train_acc = train_correct / max(train_total, 1)
 
-        # Validation (Đã bổ sung AMP Autocast)
+        # Validation
         model.eval()
         val_correct, val_total, running_val_loss = 0, 0, 0.0
         with torch.no_grad():
             for x, y in val_loader:
                 x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
-                with torch.amp.autocast('cuda', enabled=torch.cuda.is_available()):
-                    preds = model(x)
-                    if isinstance(preds, tuple):
-                        preds = preds[0]
-                    loss = criterion(preds, y)
-
+                preds = model(x)
+                if isinstance(preds, tuple):
+                    preds = preds[0]
+                loss = criterion(preds, y)
                 running_val_loss += loss.item()
                 val_correct += (preds.argmax(dim=1) == y).sum().item()
                 val_total += y.size(0)
@@ -535,84 +732,122 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
             logger.info(f"✓ Saved best model: Val Acc={best_val_acc:.4f} at epoch {epoch}")
         else:
             patience_counter += 1
-            if patience_counter >= args.early_stop_patience:
-                logger.info(
-                    f"⏹ Early stopping tại epoch {epoch} (không cải thiện sau {args.early_stop_patience} epoch, best={best_val_acc:.4f})")
+            if patience_counter >= early_stop_patience:
+                logger.info(f"⏹ Early stopping tại epoch {epoch} "
+                            f"(không cải thiện sau {early_stop_patience} epoch, best={best_val_acc:.4f})")
                 break
 
-    # Evaluate on Test Set (Đã bổ sung AMP Autocast & zero_division cho F1)
+
+
     logger.info("Evaluating Best Model on TEST Set...")
     if os.path.exists(best_checkpoint_path):
         model, _, _ = load_checkpoint_safely(model, best_checkpoint_path, device, logger)
 
     model.eval()
-    test_correct, test_total = 0, 0
+    test_correct, test_total, running_test_loss = 0, 0, 0.0
     true_labels, predicted_labels = [], []
 
     with torch.no_grad():
         for images, labels in test_loader:
             images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
-            with torch.amp.autocast('cuda', enabled=torch.cuda.is_available()):
-                outputs = model(images)
-                if isinstance(outputs, tuple): outputs = outputs[0]
+            outputs = model(images)
+            if isinstance(outputs, tuple): outputs = outputs[0]
 
+            loss = criterion(outputs, labels)
+            running_test_loss += loss.item()
             predicted = outputs.argmax(dim=1)
+
             test_correct += (predicted == labels).sum().item()
             test_total += labels.size(0)
             true_labels.extend(labels.cpu().numpy())
             predicted_labels.extend(predicted.cpu().numpy())
 
     test_acc = test_correct / max(test_total, 1)
-    f1_macro = f1_score(true_labels, predicted_labels, average='macro', zero_division=0)
-    f1_weighted = f1_score(true_labels, predicted_labels, average='weighted', zero_division=0)
+    f1_macro = f1_score(true_labels, predicted_labels, average='macro')
+    f1_weighted = f1_score(true_labels, predicted_labels, average='weighted')
 
     logger.info(f"🎯 [TEST RESULT] Test Acc: {test_acc:.4f} | F1-Macro: {f1_macro:.4f} | F1-Weighted: {f1_weighted:.4f}")
 
+    # Confusion Matrix
+    conf_matrix = confusion_matrix(true_labels, predicted_labels)
+    plt.figure(figsize=(20, 18))
+    sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", cbar=False)
+    plt.xlabel("Predicted Label")
+    plt.ylabel("True Label")
+    cm_path = os.path.join(folder_path, "confusion_matrix_test.png")
+    plt.savefig(cm_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
 
 # ======================================================================== MAIN =================================================
+"""       """
 
 if __name__ == "__main__":
-    models_to_train = [
+    modelname = [
+        "LIGHT_HYBRIC_MAMBA",
+        "MEDIUM_HYBRIC_MAMBA",
         "HEAVY_HYBRIC_MAMBA",
-        # "MEDIUM_HYBRIC_MAMBA",
-        # "LIGHT_HYBRIC_MAMBA",
+        "SUPER_MAMBA_DEPT_3",
+        "SUPER_MAMBA_DEPT_4",
+        "EFFICIENTNET_B0",
+        "MOBILENETV3_SMALL",
+        "RESNET18",
+        "VIT_S",
+        "GHOSTNET",
+        "VGG16",
+        "VIT_B",
+    ]
+    datasetname = [
+        "German",
+        "Belgium",
+        "German_51k",
+        "NEU-DET_surface-dec",
+        "German",
+        "DCID"
+    ]
+    datasetpath=[
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
+        "/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35",
+        "/kaggle/input/datasets/thanhsangtrn/dicd-35/DCID-512-35"
     ]
 
     args = get_args()
+    for i in range (10,0,-1):
+        args.__setattr__("model_name", modelname[i])
 
-    input_path = "/kaggle/input"
-    if os.path.exists(input_path):
-        available_dirs = os.listdir(input_path)
-        matched_dir = next((d for d in available_dirs if "imagenet" in d.lower()), None)
-        if matched_dir:
-            args.root_dataset_path = os.path.join(input_path, matched_dir)
-            print(f"-> Đã tự động phát hiện đường dẫn Dataset: {args.root_dataset_path}")
-
-    args.save_path = "/kaggle/working/Result"
-    args.dataset_name = "ImageNet-1k"
-    args.class_num = 1000
-    args.picture_size = 224
-    args.batch_size = 64
-    args.num_epoch = 50
-
-    for model_name in models_to_train:
-        args.model_name = model_name
-        args.resume_path = os.path.join(
-            args.save_path,
-            args.model_name,
-            args.dataset_name,
-            f"{args.model_name}_best.pth"
-        )
-
-        # Bật flag resume để nạp lại checkpoint nếu tồn tại
-        if os.path.exists(args.resume_path):
-            args.resume = True
+        args.__setattr__("dataset_name", datasetname[5])
+        args.__setattr__("root_dataset_path", datasetpath[6])
+        args.__setattr__("batch_size", 48)
+        args.__setattr__("img_size", 32)
+        args.__setattr__("num_epoch", 51)
+        args.__setattr__("save_path", "/kaggle/working/")
+        args.__setattr__("resume_path",
+                         os.path.join(
+                             args.save_path,
+                             args.model_name,
+                             args.dataset_name,
+                             f"{args.model_name}_best.pth"
+                         )
+                         )
 
         folder_path = os.path.join(args.save_path, args.model_name, args.dataset_name)
         logger = setup_logging(folder_path)
 
+        full_dataset = TrafficSignDataset(
+            root=args.root_dataset_path,
+            dataset_name=args.dataset_name,
+            csv_filename=args.csv_filename,
+            shuffle_samples=True
+        )
+
         train_loader, val_loader, test_loader, num_classes = dataloader_prepare(
-            root_path=args.root_dataset_path,
+            full_dataset=full_dataset,
+            dataset_name=args.dataset_name,
+            root=args.root_dataset_path,
             batchsize=args.batch_size,
             img_size=args.picture_size,
             seed=args.SEED,
@@ -622,8 +857,7 @@ if __name__ == "__main__":
         model = build_Model(
             name=args.model_name,
             num_classes=num_classes,
-            pretrained=True,
-            img_size=args.picture_size
+            pretrained=True
         )
 
         train_and_evaluate(

@@ -1,5 +1,14 @@
 .env
 *.env
 
-.pth
+# Model checkpoints
 *.pth
+*.pt
+*.ckpt
+*.zip
+
+# Python cache
+__pycache__/
+*.pyc
+# Extracted checkpoints
+**/*_best/

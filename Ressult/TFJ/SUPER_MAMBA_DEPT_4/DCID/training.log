@@ -1,0 +1,16 @@
+2026-09-06 12:22:03 [INFO] Dataset: DCID | Số nhãn (classes): 35 | Tổng số ảnh: 35000
+2026-09-06 12:22:03 [INFO] Dữ liệu đã chia -> Train (70%): 24500 | Val (15%): 5250 | Test (15%): 5250
+2026-09-06 12:22:03 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-06 12:22:03 [INFO]   Batch 0: 25 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-06 12:22:03 [INFO]   Batch 1: 26 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 12:22:03 [INFO]   Batch 2: 25 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-06 12:22:03 [INFO]   Batch 3: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-06 12:22:03 [INFO]   Batch 4: 25 classes (first 5: [0, 1, 2, 3, 6])
+2026-09-06 12:22:04 [INFO] ✅ Shuffle tốt! Trung bình 26.0 classes/batch
+2026-09-06 12:22:04 [INFO] ============================================================
+2026-09-06 12:22:04 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-06 12:22:04 [INFO] Dataset: DCID | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35
+2026-09-06 12:22:04 [INFO] Device: cuda
+2026-09-06 12:22:04 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-06 12:22:04 [INFO] ============================================================

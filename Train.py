@@ -45,7 +45,7 @@ def get_args():
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=1, type=int)
+    parser.add_argument('--early_stop_patience', default=15, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -483,17 +483,24 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
 """
 import math
 
-
-def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5, total_epochs=100):
-    """Cosine Annealing với Warmup"""
+def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, total_epochs=50):
+    warmup_epochs = 5
     if epoch < warmup_epochs:
-        # Warmup tuyến tính
+        return base_lr * (epoch + 1) / warmup_epochs
+
+    progress = (epoch - warmup_epochs) / max(1, (total_epochs - warmup_epochs))
+    lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + np.cos(np.pi * progress))
+    return max(lr, min_lr)
+"""
+def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5, total_epochs=100):
+    if epoch < warmup_epochs:
         return base_lr * (epoch + 1) / warmup_epochs
 
     # Cosine decay từ base_lr xuống min_lr
     progress = (epoch - warmup_epochs) / (total_epochs - warmup_epochs)
     cos_factor = 0.5 * (1 + math.cos(math.pi * progress))
     return min_lr + (base_lr - min_lr) * cos_factor
+    """
 import math
 """def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5):
 
@@ -784,76 +791,79 @@ if __name__ == "__main__":
         "SUPER_MAMBA_DEPT_4",
         "EFFICIENTNET_B0",
         "MOBILENETV3_SMALL",
+        "RESNET18",
+        "VIT_S",
         "GHOSTNET",
         "VGG16",
-        "RESNET18",
         "VIT_B",
-        "VIT_S",
     ]
     datasetname = [
         "German",
         "Belgium",
         "German_51k",
-        "NEU-DET_surface-dec"
+        "NEU-DET_surface-dec",
+        "German",
+        "DCID"
     ]
     datasetpath=[
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
-        "/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan"
+        "/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35"
     ]
 
     args = get_args()
-    args.__setattr__("model_name", modelname[8])
+    for i in range (0,10):
+        args.__setattr__("model_name", modelname[i])
 
-    args.__setattr__("dataset_name", datasetname[2])
-    args.__setattr__("root_dataset_path", datasetpath[2])
-    args.__setattr__("batch_size", 64)
-    args.__setattr__("img_size", 32)
-    args.__setattr__("num_epoch", 100)
+        args.__setattr__("dataset_name", datasetname[5])
+        args.__setattr__("root_dataset_path", datasetpath[5])
+        args.__setattr__("batch_size", 48)
+        args.__setattr__("img_size", 32)
+        args.__setattr__("num_epoch", 51)
 
+        args.__setattr__("resume_path",
+                         os.path.join(
+                             args.save_path,
+                             args.model_name,
+                             args.dataset_name,
+                             f"{args.model_name}_best.pth"
+                         )
+                         )
 
-    args.__setattr__("resume_path",
-                     os.path.join(
-                         args.save_path,
-                         args.model_name,
-                         args.dataset_name,
-                         f"{args.model_name}_best.pth"
-                     )
-                     )
+        folder_path = os.path.join(args.save_path, args.model_name, args.dataset_name)
+        logger = setup_logging(folder_path)
 
-    folder_path = os.path.join(args.save_path, args.model_name, args.dataset_name)
-    logger = setup_logging(folder_path)
+        full_dataset = TrafficSignDataset(
+            root=args.root_dataset_path,
+            dataset_name=args.dataset_name,
+            csv_filename=args.csv_filename,
+            shuffle_samples=True
+        )
 
-    full_dataset = TrafficSignDataset(
-        root=args.root_dataset_path,
-        dataset_name=args.dataset_name,
-        csv_filename=args.csv_filename,
-        shuffle_samples=True
-    )
+        train_loader, val_loader, test_loader, num_classes = dataloader_prepare(
+            full_dataset=full_dataset,
+            dataset_name=args.dataset_name,
+            root=args.root_dataset_path,
+            batchsize=args.batch_size,
+            img_size=args.picture_size,
+            seed=args.SEED,
+            logger=logger
+        )
 
-    train_loader, val_loader, test_loader, num_classes = dataloader_prepare(
-        full_dataset=full_dataset,
-        dataset_name=args.dataset_name,
-        root=args.root_dataset_path,
-        batchsize=args.batch_size,
-        img_size=args.picture_size,
-        seed=args.SEED,
-        logger=logger
-    )
+        model = build_Model(
+            name=args.model_name,
+            num_classes=num_classes,
+            pretrained=True
+        )
 
-    model = build_Model(
-        name=args.model_name,
-        num_classes=num_classes,
-        pretrained=True
-    )
-
-    train_and_evaluate(
-        args=args,
-        model=model,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        test_loader=test_loader,
-        logger=logger
-    )
+        train_and_evaluate(
+            args=args,
+            model=model,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            test_loader=test_loader,
+            logger=logger
+        )

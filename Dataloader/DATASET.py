@@ -53,7 +53,8 @@ class TrafficSignDataset(Dataset):
                 "belgium_1train_1test",
                 "german_51k",
                 "neu-det",
-                "neu-det_surface-dec"
+                "neu-det_surface-dec",
+                "dcid"
             ]:
             self.samples, self.class_to_idx = self._scan_belgium(root)
         else:  # "german", "folders", "default"
