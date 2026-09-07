@@ -815,14 +815,14 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    for i in range (0,10):
+    for i in range (10,12):
         args.__setattr__("model_name", modelname[i])
 
         args.__setattr__("dataset_name", datasetname[5])
         args.__setattr__("root_dataset_path", datasetpath[5])
         args.__setattr__("batch_size", 48)
         args.__setattr__("img_size", 32)
-        args.__setattr__("num_epoch", 51)
+        args.__setattr__("num_epoch", 40)
 
         args.__setattr__("resume_path",
                          os.path.join(

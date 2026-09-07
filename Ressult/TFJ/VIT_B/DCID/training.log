@@ -1,0 +1,10 @@
+2026-09-07 00:33:03 [INFO] Dataset: DCID | Số nhãn (classes): 35 | Tổng số ảnh: 35000
+2026-09-07 00:33:03 [INFO] Dữ liệu đã chia -> Train (70%): 24500 | Val (15%): 5250 | Test (15%): 5250
+2026-09-07 00:33:03 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-07 00:33:03 [INFO]   Batch 0: 26 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-07 00:33:03 [INFO]   Batch 1: 25 classes (first 5: [0, 1, 2, 3, 5])
+2026-09-07 00:33:03 [INFO]   Batch 2: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-07 00:33:03 [INFO]   Batch 3: 25 classes (first 5: [0, 1, 4, 5, 6])
+2026-09-07 00:33:03 [INFO]   Batch 4: 28 classes (first 5: [0, 1, 2, 3, 5])
+2026-09-07 00:33:03 [INFO] ✅ Shuffle tốt! Trung bình 26.2 classes/batch
