@@ -88,3 +88,4 @@
 2026-09-06 12:06:36 [INFO] 
 [RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HEAVY_HYBRIC_MAMBA/DCID/HEAVY_HYBRIC_MAMBA_best.pth
 2026-09-06 12:06:39 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9910 | F1-Macro: 0.9911 | F1-Weighted: 0.9911
+

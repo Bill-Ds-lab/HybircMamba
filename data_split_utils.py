@@ -51,11 +51,11 @@ def get_or_create_split(full_dataset, save_path: str, dataset_name: str,
     labels = [full_dataset.class_to_idx[full_dataset.samples[i][1]] for i in indices]
 
     train_idx, temp_idx = train_test_split(
-        indices, test_size=0.30, random_state=seed, shuffle=True, stratify=labels
+        indices, test_size=0.50, random_state=seed, shuffle=True, stratify=labels
     )
     temp_labels = [labels[i] for i in temp_idx]
     val_idx, test_idx = train_test_split(
-        temp_idx, test_size=0.50, random_state=seed, shuffle=True, stratify=temp_labels
+        temp_idx, test_size=0.70, random_state=seed, shuffle=True, stratify=temp_labels
     )
 
     train_samples = [full_dataset.samples[i] for i in train_idx]

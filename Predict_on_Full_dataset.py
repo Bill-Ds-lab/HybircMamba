@@ -183,7 +183,6 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"🔧 Device: {device}")
 
-    # Fix 1: Thiết lập resize chuẩn (32, 32)
     transform = transforms.Compose([
         transforms.Resize((32, 32)),
         transforms.ToTensor(),
@@ -193,7 +192,6 @@ def main():
     print("📦 Đang đọc dataset...")
     dataset = datasets.ImageFolder(root=DATASET_PATH, transform=transform)
 
-    # Fix 2: Đảm bảo thứ tự Class theo đúng dạng số (0, 1, 2... 42) thay vì sắp xếp chuỗi
     classes = sorted(dataset.classes, key=lambda x: int(x))
     class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
     dataset.classes = classes

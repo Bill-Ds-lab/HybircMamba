@@ -30,3 +30,19 @@
 2026-08-25 13:38:37 [INFO] Device: cuda
 2026-08-25 13:38:37 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
 2026-08-25 13:38:37 [INFO] ============================================================
+2026-09-07 14:17:29 [INFO] Dataset: German | Số nhãn (classes): 43 | Tổng số ảnh: 557483
+2026-09-07 14:17:29 [INFO] Dữ liệu đã chia -> Train (70%): 390238 | Val (15%): 83622 | Test (15%): 83623
+2026-09-07 14:17:29 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-07 14:17:31 [INFO]   Batch 0: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-07 14:17:31 [INFO]   Batch 1: 32 classes (first 5: [1, 3, 4, 5, 7])
+2026-09-07 14:17:31 [INFO]   Batch 2: 23 classes (first 5: [1, 2, 3, 4, 6])
+2026-09-07 14:17:31 [INFO]   Batch 3: 28 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-07 14:17:31 [INFO]   Batch 4: 27 classes (first 5: [2, 3, 4, 5, 6])
+2026-09-07 14:17:31 [INFO] ✅ Shuffle tốt! Trung bình 27.6 classes/batch
+2026-09-07 14:17:33 [INFO] ============================================================
+2026-09-07 14:17:33 [INFO] Starting training: VGG16
+2026-09-07 14:17:33 [INFO] Dataset: German | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan
+2026-09-07 14:17:33 [INFO] Device: cuda
+2026-09-07 14:17:33 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-07 14:17:33 [INFO] ============================================================

@@ -1,0 +1,154 @@
+2026-09-07 23:57:41 [INFO] Dataset: Belgium_ar | Số nhãn (classes): 62 | Tổng số ảnh: 106425
+2026-09-07 23:57:41 [INFO] Dữ liệu đã chia -> Train (70%): 69176 | Val (15%): 18624 | Test (15%): 18625
+2026-09-07 23:57:41 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-07 23:57:41 [INFO]   Batch 0: 27 classes (first 5: [0, 7, 9, 12, 13])
+2026-09-07 23:57:41 [INFO]   Batch 1: 30 classes (first 5: [1, 6, 7, 8, 14])
+2026-09-07 23:57:41 [INFO]   Batch 2: 29 classes (first 5: [1, 2, 4, 7, 10])
+2026-09-07 23:57:41 [INFO]   Batch 3: 24 classes (first 5: [7, 8, 16, 17, 18])
+2026-09-07 23:57:41 [INFO]   Batch 4: 25 classes (first 5: [1, 7, 8, 13, 14])
+2026-09-07 23:57:41 [INFO] ✅ Shuffle tốt! Trung bình 27.0 classes/batch
+2026-09-07 23:57:41 [INFO] ============================================================
+2026-09-07 23:57:41 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-07 23:57:41 [INFO] Dataset: Belgium_ar | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-07 23:57:41 [INFO] Device: cuda
+2026-09-07 23:57:41 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-07 23:57:41 [INFO] ============================================================
+2026-09-07 23:58:03 [INFO] Dataset: Belgium_ar | Số nhãn (classes): 62 | Tổng số ảnh: 106425
+2026-09-07 23:58:03 [INFO] Dữ liệu đã chia -> Train (70%): 69176 | Val (15%): 18624 | Test (15%): 18625
+2026-09-07 23:58:03 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-07 23:58:05 [INFO]   Batch 0: 25 classes (first 5: [4, 6, 7, 8, 12])
+2026-09-07 23:58:05 [INFO]   Batch 1: 29 classes (first 5: [1, 5, 7, 13, 17])
+2026-09-07 23:58:05 [INFO]   Batch 2: 29 classes (first 5: [7, 10, 16, 17, 18])
+2026-09-07 23:58:05 [INFO]   Batch 3: 30 classes (first 5: [5, 7, 16, 17, 18])
+2026-09-07 23:58:05 [INFO]   Batch 4: 32 classes (first 5: [2, 4, 6, 7, 10])
+2026-09-07 23:58:05 [INFO] ✅ Shuffle tốt! Trung bình 29.0 classes/batch
+2026-09-07 23:58:05 [INFO] ============================================================
+2026-09-07 23:58:05 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-07 23:58:05 [INFO] Dataset: Belgium_ar | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-07 23:58:05 [INFO] Device: cuda
+2026-09-07 23:58:05 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-07 23:58:05 [INFO] ============================================================
+2026-09-07 23:58:44 [INFO] Epoch 000 | Train Loss: 1.6542 | Train Acc: 0.5393 | Val Loss: 0.7490 | Val Acc: 0.7872
+2026-09-07 23:58:44 [INFO] ✓ Saved best model: Val Acc=0.7872 at epoch 0
+2026-09-07 23:59:21 [INFO] Epoch 001 | Train Loss: 0.7667 | Train Acc: 0.7773 | Val Loss: 0.4413 | Val Acc: 0.8680
+2026-09-07 23:59:21 [INFO] ✓ Saved best model: Val Acc=0.8680 at epoch 1
+2026-09-07 23:59:57 [INFO] Epoch 002 | Train Loss: 0.5451 | Train Acc: 0.8370 | Val Loss: 0.3443 | Val Acc: 0.8977
+2026-09-07 23:59:57 [INFO] ✓ Saved best model: Val Acc=0.8977 at epoch 2
+2026-09-08 00:00:35 [INFO] Epoch 003 | Train Loss: 0.4349 | Train Acc: 0.8697 | Val Loss: 0.2244 | Val Acc: 0.9297
+2026-09-08 00:00:35 [INFO] ✓ Saved best model: Val Acc=0.9297 at epoch 3
+2026-09-08 00:01:11 [INFO] Epoch 004 | Train Loss: 0.3853 | Train Acc: 0.8850 | Val Loss: 0.1944 | Val Acc: 0.9427
+2026-09-08 00:01:12 [INFO] ✓ Saved best model: Val Acc=0.9427 at epoch 4
+2026-09-08 00:01:49 [INFO] Epoch 005 | Train Loss: 0.3075 | Train Acc: 0.9092 | Val Loss: 0.1513 | Val Acc: 0.9572
+2026-09-08 00:01:49 [INFO] ✓ Saved best model: Val Acc=0.9572 at epoch 5
+2026-09-08 00:02:26 [INFO] Epoch 006 | Train Loss: 0.2837 | Train Acc: 0.9162 | Val Loss: 0.1942 | Val Acc: 0.9439
+2026-09-08 00:03:03 [INFO] Epoch 007 | Train Loss: 0.2563 | Train Acc: 0.9253 | Val Loss: 0.2187 | Val Acc: 0.9355
+2026-09-08 00:03:40 [INFO] Epoch 008 | Train Loss: 0.2368 | Train Acc: 0.9301 | Val Loss: 0.1608 | Val Acc: 0.9515
+2026-09-08 00:04:18 [INFO] Epoch 009 | Train Loss: 0.2309 | Train Acc: 0.9327 | Val Loss: 0.1742 | Val Acc: 0.9529
+2026-09-08 00:04:55 [INFO] Epoch 010 | Train Loss: 0.2186 | Train Acc: 0.9355 | Val Loss: 0.1085 | Val Acc: 0.9704
+2026-09-08 00:04:55 [INFO] ✓ Saved best model: Val Acc=0.9704 at epoch 10
+2026-09-08 00:05:15 [INFO] Dataset: Belgium_ar | Số nhãn (classes): 62 | Tổng số ảnh: 106425
+2026-09-08 00:05:15 [INFO] Dữ liệu đã chia -> Train (70%): 69176 | Val (15%): 18624 | Test (15%): 18625
+2026-09-08 00:05:15 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-08 00:05:17 [INFO]   Batch 0: 27 classes (first 5: [7, 13, 14, 17, 18])
+2026-09-08 00:05:17 [INFO]   Batch 1: 28 classes (first 5: [1, 2, 13, 17, 19])
+2026-09-08 00:05:17 [INFO]   Batch 2: 25 classes (first 5: [1, 7, 14, 17, 18])
+2026-09-08 00:05:17 [INFO]   Batch 3: 26 classes (first 5: [1, 7, 16, 17, 19])
+2026-09-08 00:05:17 [INFO]   Batch 4: 28 classes (first 5: [0, 3, 6, 7, 13])
+2026-09-08 00:05:17 [INFO] ✅ Shuffle tốt! Trung bình 26.8 classes/batch
+2026-09-08 00:05:17 [INFO] ============================================================
+2026-09-08 00:05:17 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-08 00:05:17 [INFO] Dataset: Belgium_ar | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-08 00:05:17 [INFO] Device: cuda
+2026-09-08 00:05:17 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-08 00:05:17 [INFO] ============================================================
+2026-09-08 00:05:17 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_4/Belgium_ar/SUPER_MAMBA_DEPT_4_best.pth
+2026-09-08 00:05:56 [INFO] Epoch 011 | Train Loss: 0.1222 | Train Acc: 0.9637 | Val Loss: 0.0501 | Val Acc: 0.9855
+2026-09-08 00:05:56 [INFO] ✓ Saved best model: Val Acc=0.9855 at epoch 11
+2026-09-08 00:06:33 [INFO] Epoch 012 | Train Loss: 0.0952 | Train Acc: 0.9721 | Val Loss: 0.0524 | Val Acc: 0.9854
+2026-09-08 00:07:10 [INFO] Epoch 013 | Train Loss: 0.0880 | Train Acc: 0.9738 | Val Loss: 0.0432 | Val Acc: 0.9878
+2026-09-08 00:07:10 [INFO] ✓ Saved best model: Val Acc=0.9878 at epoch 13
+2026-09-08 00:07:47 [INFO] Epoch 014 | Train Loss: 0.0806 | Train Acc: 0.9760 | Val Loss: 0.0416 | Val Acc: 0.9878
+2026-09-08 00:08:24 [INFO] Epoch 015 | Train Loss: 0.0788 | Train Acc: 0.9767 | Val Loss: 0.0390 | Val Acc: 0.9887
+2026-09-08 00:08:24 [INFO] ✓ Saved best model: Val Acc=0.9887 at epoch 15
+2026-09-08 00:09:01 [INFO] Epoch 016 | Train Loss: 0.0756 | Train Acc: 0.9778 | Val Loss: 0.0394 | Val Acc: 0.9883
+2026-09-08 00:09:38 [INFO] Epoch 017 | Train Loss: 0.0740 | Train Acc: 0.9778 | Val Loss: 0.0366 | Val Acc: 0.9905
+2026-09-08 00:09:38 [INFO] ✓ Saved best model: Val Acc=0.9905 at epoch 17
+2026-09-08 00:09:52 [INFO] Dataset: Belgium_ar | Số nhãn (classes): 62 | Tổng số ảnh: 106425
+2026-09-08 00:09:52 [INFO] Dữ liệu đã chia -> Train (70%): 69176 | Val (15%): 18624 | Test (15%): 18625
+2026-09-08 00:09:52 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-08 00:09:53 [INFO]   Batch 0: 27 classes (first 5: [1, 3, 7, 10, 14])
+2026-09-08 00:09:53 [INFO]   Batch 1: 31 classes (first 5: [1, 3, 7, 9, 13])
+2026-09-08 00:09:53 [INFO]   Batch 2: 34 classes (first 5: [0, 1, 2, 6, 7])
+2026-09-08 00:09:53 [INFO]   Batch 3: 24 classes (first 5: [0, 7, 17, 18, 19])
+2026-09-08 00:09:53 [INFO]   Batch 4: 28 classes (first 5: [2, 7, 10, 12, 13])
+2026-09-08 00:09:53 [INFO] ✅ Shuffle tốt! Trung bình 28.8 classes/batch
+2026-09-08 00:09:53 [INFO] ============================================================
+2026-09-08 00:09:53 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-08 00:09:53 [INFO] Dataset: Belgium_ar | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-08 00:09:53 [INFO] Device: cuda
+2026-09-08 00:09:53 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-08 00:09:53 [INFO] ============================================================
+2026-09-08 00:09:53 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_4/Belgium_ar/SUPER_MAMBA_DEPT_4_best.pth
+2026-09-08 00:10:32 [INFO] Epoch 018 | Train Loss: 0.0667 | Train Acc: 0.9807 | Val Loss: 0.0271 | Val Acc: 0.9925
+2026-09-08 00:10:32 [INFO] ✓ Saved best model: Val Acc=0.9925 at epoch 18
+2026-09-08 00:11:09 [INFO] Epoch 019 | Train Loss: 0.0649 | Train Acc: 0.9809 | Val Loss: 0.0270 | Val Acc: 0.9926
+2026-09-08 00:11:09 [INFO] ✓ Saved best model: Val Acc=0.9926 at epoch 19
+2026-09-08 00:11:46 [INFO] Epoch 020 | Train Loss: 0.0638 | Train Acc: 0.9815 | Val Loss: 0.0271 | Val Acc: 0.9928
+2026-09-08 00:11:46 [INFO] ✓ Saved best model: Val Acc=0.9928 at epoch 20
+2026-09-08 00:12:23 [INFO] Epoch 021 | Train Loss: 0.0605 | Train Acc: 0.9824 | Val Loss: 0.0261 | Val Acc: 0.9929
+2026-09-08 00:12:23 [INFO] ✓ Saved best model: Val Acc=0.9929 at epoch 21
+2026-09-08 00:13:00 [INFO] Epoch 022 | Train Loss: 0.0606 | Train Acc: 0.9823 | Val Loss: 0.0266 | Val Acc: 0.9929
+2026-09-08 00:13:16 [INFO] Dataset: Belgium_ar | Số nhãn (classes): 62 | Tổng số ảnh: 106425
+2026-09-08 00:13:16 [INFO] Dữ liệu đã chia -> Train (70%): 69176 | Val (15%): 18624 | Test (15%): 18625
+2026-09-08 00:13:16 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-08 00:13:16 [INFO]   Batch 0: 25 classes (first 5: [1, 7, 14, 16, 17])
+2026-09-08 00:13:16 [INFO]   Batch 1: 29 classes (first 5: [1, 7, 13, 17, 18])
+2026-09-08 00:13:16 [INFO]   Batch 2: 35 classes (first 5: [2, 7, 10, 13, 16])
+2026-09-08 00:13:16 [INFO]   Batch 3: 31 classes (first 5: [1, 2, 4, 5, 7])
+2026-09-08 00:13:16 [INFO]   Batch 4: 29 classes (first 5: [3, 4, 7, 13, 14])
+2026-09-08 00:13:16 [INFO] ✅ Shuffle tốt! Trung bình 29.8 classes/batch
+2026-09-08 00:13:16 [INFO] ============================================================
+2026-09-08 00:13:16 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-08 00:13:16 [INFO] Dataset: Belgium_ar | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-08 00:13:16 [INFO] Device: cuda
+2026-09-08 00:13:16 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-08 00:13:16 [INFO] ============================================================
+2026-09-08 00:13:16 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_4/Belgium_ar/SUPER_MAMBA_DEPT_4_best.pth
+2026-09-08 00:13:56 [INFO] Epoch 022 | Train Loss: 0.0603 | Train Acc: 0.9823 | Val Loss: 0.0255 | Val Acc: 0.9931
+2026-09-08 00:13:56 [INFO] ✓ Saved best model: Val Acc=0.9931 at epoch 22
+2026-09-08 00:14:33 [INFO] Epoch 023 | Train Loss: 0.0598 | Train Acc: 0.9825 | Val Loss: 0.0253 | Val Acc: 0.9932
+2026-09-08 00:14:33 [INFO] ✓ Saved best model: Val Acc=0.9932 at epoch 23
+2026-09-08 00:15:10 [INFO] Epoch 024 | Train Loss: 0.0580 | Train Acc: 0.9829 | Val Loss: 0.0264 | Val Acc: 0.9929
+2026-09-08 00:15:49 [INFO] Epoch 025 | Train Loss: 0.0586 | Train Acc: 0.9829 | Val Loss: 0.0251 | Val Acc: 0.9933
+2026-09-08 00:15:49 [INFO] ✓ Saved best model: Val Acc=0.9933 at epoch 25
+2026-09-08 00:16:27 [INFO] Epoch 026 | Train Loss: 0.0589 | Train Acc: 0.9826 | Val Loss: 0.0255 | Val Acc: 0.9933
+2026-09-08 00:16:41 [INFO] Dataset: Belgium_ar | Số nhãn (classes): 62 | Tổng số ảnh: 106425
+2026-09-08 00:16:41 [INFO] Dữ liệu đã chia -> Train (70%): 69176 | Val (15%): 18624 | Test (15%): 18625
+2026-09-08 00:16:41 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-08 00:16:41 [INFO]   Batch 0: 28 classes (first 5: [0, 1, 6, 10, 15])
+2026-09-08 00:16:41 [INFO]   Batch 1: 28 classes (first 5: [0, 1, 6, 7, 13])
+2026-09-08 00:16:41 [INFO]   Batch 2: 30 classes (first 5: [4, 7, 9, 17, 18])
+2026-09-08 00:16:41 [INFO]   Batch 3: 31 classes (first 5: [1, 7, 9, 10, 13])
+2026-09-08 00:16:41 [INFO]   Batch 4: 29 classes (first 5: [1, 3, 7, 10, 13])
+2026-09-08 00:16:42 [INFO] ✅ Shuffle tốt! Trung bình 29.2 classes/batch
+2026-09-08 00:16:42 [INFO] ============================================================
+2026-09-08 00:16:42 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-08 00:16:42 [INFO] Dataset: Belgium_ar | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-08 00:16:42 [INFO] Device: cuda
+2026-09-08 00:16:42 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-08 00:16:42 [INFO] ============================================================
+2026-09-08 00:16:42 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_4/Belgium_ar/SUPER_MAMBA_DEPT_4_best.pth
+2026-09-08 00:16:42 [INFO] Evaluating Best Model on TEST Set...
+2026-09-08 00:16:42 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/SUPER_MAMBA_DEPT_4/Belgium_ar/SUPER_MAMBA_DEPT_4_best.pth
+2026-09-08 00:16:47 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9934 | F1-Macro: 0.9914 | F1-Weighted: 0.9934

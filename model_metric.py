@@ -1,5 +1,3 @@
-
-
 import argparse
 import csv
 import gc
@@ -11,10 +9,17 @@ import timm
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+)
 from torch.utils.data import DataLoader
 
 from Dataloader.DATASET import TrafficSignDataset
+from models.MambaTSR.VSSBlock_utils import Super_MambaTRS
 from data_split_utils import get_or_create_split
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
 from models.vmamba.Vmamba_ultils import Super_Mamba
@@ -23,11 +28,11 @@ from models.vmamba.Vmamba_ultils import Super_Mamba
 def get_args():
     parser = argparse.ArgumentParser(description="Benchmark & So sánh các mô hình Traffic Sign")
 
-    parser.add_argument('--dataset_name', default="German_51k", type=str,
+    parser.add_argument('--dataset_name', default="NEU-DET_surface-dec", type=str,
                          choices=["German", "German_CSV", "Belgium", "German_51k", "NEU-DET_surface-dec"])
     parser.add_argument('--csv_filename', default="Train.csv", type=str)
     parser.add_argument('--root_dataset_path',
-                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k", type=str)
+                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET", type=str)
     parser.add_argument('--save_path',
                          default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ", type=str)
     parser.add_argument('--output_dir', default="./benchmark_outputs", type=str)
@@ -42,13 +47,13 @@ def get_args():
         "HEAVY_HYBRIC_MAMBA",
         "SUPER_MAMBA_DEPT_3",
         "SUPER_MAMBA_DEPT_4",
-        "VGG16",
-        "RESNET18",
-        "VIT_B",
-        "VIT_S",
         "EFFICIENTNET_B0",
         "MOBILENETV3_SMALL",
+        "RESNET18",
+        "VIT_S",
         "GHOSTNET",
+        "VGG16",
+        "VIT_B",
     ])
 
     parser.add_argument('--skip_missing_checkpoint', action='store_true', default=True)
@@ -72,9 +77,9 @@ def _friendly_cuda_error(e: Exception, device: str) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# BUILD MODEL - ĐÃ SỬA ĐÚNG 100% KHỚP VỚI train.py
+# BUILD MODEL - KHỚP VỚI train.py
 # --------------------------------------------------------------------------- #
-def build_Model(name, num_classes=43, pretrained=False):
+def build_Model(name, num_classes=6, pretrained=False):
     if name == "LIGHT_HYBRIC_MAMBA":
         return HybricMamba(
             dims=(3, 16, 32, 56, 96),
@@ -82,8 +87,8 @@ def build_Model(name, num_classes=43, pretrained=False):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.5,
-            conv_frac=0.3,
+            ssm_frac=0.7,
+            conv_frac=0.2,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -95,8 +100,8 @@ def build_Model(name, num_classes=43, pretrained=False):
             ssm_ratio=1.5,
             mamba_blocks=(2, 2),
             cnn_blocks=(1, 2),
-            ssm_frac=0.6,
-            conv_frac=0.25,
+            ssm_frac=0.3,
+            conv_frac=0.5,
             use_aux=True,
         )
     elif name == "HEAVY_HYBRIC_MAMBA":
@@ -113,9 +118,9 @@ def build_Model(name, num_classes=43, pretrained=False):
             use_aux=True,
         )
     elif name == "SUPER_MAMBA_DEPT_4":
-        return Super_Mamba(dims=3, depth=4, num_classes=num_classes)
+        return Super_MambaTRS(dims=3, depth=4, num_classes=num_classes)
     elif name == "SUPER_MAMBA_DEPT_3":
-        return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
+        return Super_MambaTRS(dims=3, depth=3, num_classes=num_classes)
     elif name in ["VGG16", "VGG-16"]:
         return timm.create_model("vgg16", pretrained=pretrained, num_classes=num_classes)
     elif name in ["RESNET18", "ResNet18"]:
@@ -183,11 +188,10 @@ def get_transforms(img_size=32):
 
 
 # --------------------------------------------------------------------------- #
-# TEST LOADER - DÙNG SPLIT CỐ ĐỊNH THEO PATH (miễn nhiễm với shuffle order)
+# TEST LOADER
 # --------------------------------------------------------------------------- #
+"""
 def build_test_loader(args):
-    # shuffle_samples không còn quan trọng nữa vì get_or_create_split match theo path,
-    # nhưng để nhất quán và tránh nhầm lẫn, ta để False ở đây.
     full_dataset = TrafficSignDataset(
         root=args.root_dataset_path,
         dataset_name=args.dataset_name,
@@ -204,12 +208,6 @@ def build_test_loader(args):
         print("\n" + "!" * 90)
         print("⚠️  CẢNH BÁO QUAN TRỌNG: Chưa có file split cố định cho dataset này.")
         print("   Split sẽ được TẠO MỚI ngay bây giờ và lưu lại cho các lần sau.")
-        print("   NHƯNG: nếu các checkpoint *_best.pth hiện có được train TRƯỚC KHI")
-        print("   bạn áp dụng cơ chế split cố định này cho train.py, thì split mới")
-        print("   tạo ở đây CÓ THỂ KHÔNG khớp với phần dữ liệu model đã học lúc train.")
-        print("   -> Để kết quả benchmark đáng tin cậy, hãy: ")
-        print("      1) Sửa train.py để dùng chung data_split_utils.get_or_create_split()")
-        print("      2) Train lại (ít nhất 1 lần) TRƯỚC KHI tin vào accuracy ở đây.")
         print("!" * 90 + "\n")
 
     _, _, test_samples = get_or_create_split(
@@ -232,7 +230,55 @@ def build_test_loader(args):
 
     print(f"[DATA] Test set: {len(test_dataset)} ảnh | {num_classes} classes")
     return test_loader, num_classes
+"""
+def build_eval_loaders(args):
+    transform_test = get_transforms(args.picture_size)
 
+    # 1. Dataset toàn bộ (Full Dataset)
+    full_dataset = TrafficSignDataset(
+        root=args.root_dataset_path,
+        dataset_name=args.dataset_name,
+        csv_filename=args.csv_filename,
+        transform=transform_test,
+        shuffle_samples=False,
+    )
+    num_classes = len(full_dataset.class_to_idx)
+    dataset_class = type(full_dataset)
+
+    full_loader = DataLoader(
+        full_dataset, batch_size=args.batch_size, shuffle=False,
+        num_workers=4, pin_memory=True,
+    )
+
+    # 2. Dataset cho tập Test riêng biệt
+    split_path_exists = os.path.exists(
+        os.path.join(args.save_path, "_dataset_splits", f"{args.dataset_name}_split_seed{args.SEED}.json")
+    )
+    if not split_path_exists:
+        print("\n" + "!" * 90)
+        print("⚠️  CẢNH BÁO QUAN TRỌNG: Chưa có file split cố định cho dataset này.")
+        print("    Split sẽ được TẠO MỚI ngay bây giờ và lưu lại cho các lần sau.")
+        print("!" * 90 + "\n")
+
+    _, _, test_samples = get_or_create_split(
+        full_dataset, args.save_path, args.dataset_name, seed=args.SEED
+    )
+
+    test_dataset = dataset_class(
+        root=args.root_dataset_path,
+        transform=transform_test,
+        samples=test_samples,
+        class_to_idx=full_dataset.class_to_idx,
+        shuffle_samples=False,
+    )
+
+    test_loader = DataLoader(
+        test_dataset, batch_size=args.batch_size, shuffle=False,
+        num_workers=4, pin_memory=True,
+    )
+
+    print(f"[DATA] Full dataset: {len(full_dataset)} ảnh | Test set: {len(test_dataset)} ảnh | {num_classes} classes")
+    return full_loader, test_loader, num_classes
 
 def count_parameters(model: nn.Module) -> dict:
     total = sum(p.numel() for p in model.parameters())
@@ -241,22 +287,72 @@ def count_parameters(model: nn.Module) -> dict:
     return {"total_params": total, "trainable_params": trainable, "size_mb": size_mb, "size_m": total / 1e6}
 
 
-def count_flops(model: nn.Module, input_size=(1, 3, 32, 32), device="cpu") -> dict:
-    model = model.to(device).eval()
-    dummy_input = torch.randn(*input_size).to(device)
+from fvcore.nn import FlopCountAnalysis
+
+
+def selective_scan_flop_jit(inputs, outputs):
     try:
-        from thop import profile
-        flops, params = profile(model, inputs=(dummy_input,), verbose=False)
-        method = "thop"
-    except Exception as e1:
-        try:
-            from fvcore.nn import FlopCountAnalysis
-            fca = FlopCountAnalysis(model, dummy_input)
-            flops = fca.total()
-            method = "fvcore"
-        except Exception as e2:
-            raise RuntimeError(f"Không thể tính FLOPs (thop: {e1}; fvcore: {e2})")
-    return {"flops_m": flops / 1e6, "method": method}
+        if len(inputs) < 3:
+            return 0
+        u_shape = inputs[0].type().sizes()
+        if u_shape is None or len(u_shape) < 3:
+            return 0
+        B, D, L = u_shape[0], u_shape[1], u_shape[2]
+        a_shape = inputs[2].type().sizes()
+        if a_shape is None or len(a_shape) < 1:
+            return 0
+        N = a_shape[1] if len(a_shape) > 1 else a_shape[0]
+        flops = 9 * B * L * D * N + B * D * L
+        return flops
+    except Exception:
+        return 0
+
+
+def count_flops(model, input_size=(1, 3, 224, 224), device=None):
+    if device is None:
+        device = next(model.parameters()).device
+
+    model = model.to(device).eval()
+    dummy_input = torch.randn(*input_size, device=device)
+
+    supported_ops = {
+        "aten::silu": None,
+        "aten::gelu": None,
+        "aten::relu": None,
+        "aten::sigmoid": None,
+        "aten::exp": None,
+        "aten::neg": None,
+        "aten::add": None,
+        "aten::mul": None,
+        "aten::flip": None,
+        "aten::view": None,
+        "aten::permute": None,
+        "aten::transpose": None,
+        "aten::reshape": None,
+        "prim::PythonOp.CrossScan": None,
+        "prim::PythonOp.CrossMerge": None,
+        "prim::PythonOp.SelectiveScan": selective_scan_flop_jit,
+        "prim::PythonOp.SelectiveScanFn": selective_scan_flop_jit,
+    }
+
+    fca = FlopCountAnalysis(model, dummy_input)
+
+    for op_name, handle in supported_ops.items():
+        fca.set_op_handle(op_name, handle)
+
+    fca.unsupported_ops_warnings(False)
+    fca.uncalled_modules_warnings(False)
+
+    total_flops = fca.total()
+
+    print(f"✅ Total FLOPs: {total_flops / 1e6:.2f}M ({total_flops / 1e9:.4f}G)")
+
+    return {
+        "flops": total_flops,
+        "flops_m": total_flops / 1e6,
+        "flops_g": total_flops / 1e9,
+        "method": "fvcore"
+    }
 
 
 def measure_inference_time(model, input_size=(1, 3, 32, 32), device="cpu", n_warmup=30, n_runs=200) -> dict:
@@ -324,10 +420,20 @@ def evaluate_accuracy(model, dataloader, device="cpu"):
             all_labels.extend(label_arr)
 
     acc = accuracy_score(all_labels, all_preds) * 100
-    f1_macro = f1_score(all_labels, all_preds, average="macro") * 100
-    f1_weighted = f1_score(all_labels, all_preds, average="weighted") * 100
+    precision_macro = precision_score(all_labels, all_preds, average="macro", zero_division=0) * 100
+    recall_macro = recall_score(all_labels, all_preds, average="macro", zero_division=0) * 100
+    f1_macro = f1_score(all_labels, all_preds, average="macro", zero_division=0) * 100
+    f1_weighted = f1_score(all_labels, all_preds, average="weighted", zero_division=0) * 100
     cm = confusion_matrix(all_labels, all_preds)
-    return {"accuracy": acc, "f1_macro": f1_macro, "f1_weighted": f1_weighted, "confusion_matrix": cm}
+
+    return {
+        "accuracy": acc,
+        "precision_macro": precision_macro,
+        "recall_macro": recall_macro,
+        "f1_macro": f1_macro,
+        "f1_weighted": f1_weighted,
+        "confusion_matrix": cm,
+    }
 
 
 def plot_confusion_matrix(cm, model_name, save_dir):
@@ -349,7 +455,7 @@ def plot_confusion_matrix(cm, model_name, save_dir):
 def compute_ids(accuracy: float, params_million: float) -> float:
     return accuracy / params_million if params_million > 0 else 0.0
 
-
+"""
 def benchmark_one_model(model_name, args, test_loader, num_classes, device):
     print(f"\n{'=' * 70}\n>>> BENCHMARK: {model_name}\n{'=' * 70}")
     result = {"model_name": model_name}
@@ -366,8 +472,7 @@ def benchmark_one_model(model_name, args, test_loader, num_classes, device):
         model, missing, unexpected, _ = load_checkpoint_safely(model, ckpt_path, device)
         result["arch_mismatch"] = bool(missing or unexpected)
     else:
-        print(
-            f"  ⚠️ Không tìm thấy checkpoint tại: {args.save_path}/{model_name}/{args.dataset_name}/{model_name}_best.pth")
+        print(f"  ⚠️ Không tìm thấy checkpoint tại: {args.save_path}/{model_name}/{args.dataset_name}/{model_name}_best.pth")
         result["arch_mismatch"] = None
 
     model = model.to(device)
@@ -407,6 +512,8 @@ def benchmark_one_model(model_name, args, test_loader, num_classes, device):
         try:
             acc_info = evaluate_accuracy(model, test_loader, device=device)
             result["accuracy"] = acc_info["accuracy"]
+            result["precision_macro"] = acc_info["precision_macro"]
+            result["recall_macro"] = acc_info["recall_macro"]
             result["f1_macro"] = acc_info["f1_macro"]
             result["f1_weighted"] = acc_info["f1_weighted"]
             result["ids"] = compute_ids(acc_info["accuracy"], params_info["size_m"])
@@ -414,15 +521,33 @@ def benchmark_one_model(model_name, args, test_loader, num_classes, device):
             cm_path = plot_confusion_matrix(acc_info["confusion_matrix"], model_name, args.output_dir)
             result["confusion_matrix_path"] = cm_path
             print(
-                f"  ✅ Test Acc: {acc_info['accuracy']:.2f}% | F1-macro: {acc_info['f1_macro']:.2f}% | IDS: {result['ids']:.2f}")
+                f"  ✅ Test Acc: {acc_info['accuracy']:.2f}% | "
+                f"Prec-Macro: {acc_info['precision_macro']:.2f}% | "
+                f"Rec-Macro: {acc_info['recall_macro']:.2f}% | "
+                f"F1-Macro: {acc_info['f1_macro']:.2f}% | "
+                f"F1-Weighted: {acc_info['f1_weighted']:.2f}% | "
+                f"IDS: {result['ids']:.2f}"
+            )
         except Exception as e:
-            print(f"  ❌ Lỗi khi tính accuracy: {e}")
+            print(f"  ❌ Lỗi khi tính toán metrics: {e}")
             result["accuracy"] = None
+            result["precision_macro"] = None
+            result["recall_macro"] = None
+            result["f1_macro"] = None
+            result["f1_weighted"] = None
     elif result["arch_mismatch"]:
         print("  ⚠️ Bỏ qua accuracy vì kiến trúc không khớp checkpoint.")
         result["accuracy"] = None
+        result["precision_macro"] = None
+        result["recall_macro"] = None
+        result["f1_macro"] = None
+        result["f1_weighted"] = None
     else:
         result["accuracy"] = None
+        result["precision_macro"] = None
+        result["recall_macro"] = None
+        result["f1_macro"] = None
+        result["f1_weighted"] = None
 
     del model
     if device == "cuda":
@@ -430,74 +555,305 @@ def benchmark_one_model(model_name, args, test_loader, num_classes, device):
     gc.collect()
 
     return result
+"""
+def benchmark_one_model(model_name, args, full_loader, test_loader, num_classes, device):
+    print(f"\n{'=' * 70}\n>>> BENCHMARK: {model_name}\n{'=' * 70}")
+    result = {"model_name": model_name}
+
+    model = build_Model(model_name, num_classes=num_classes, pretrained=False)
+    params_info = count_parameters(model)
+    result["params_m"] = params_info["size_m"]
+    result["size_mb"] = params_info["size_mb"]
+
+    ckpt_path = find_checkpoint(args.save_path, model_name, args.dataset_name)
+    result["checkpoint_found"] = ckpt_path is not None
+
+    if ckpt_path is not None:
+        model, missing, unexpected, _ = load_checkpoint_safely(model, ckpt_path, device)
+        result["arch_mismatch"] = bool(missing or unexpected)
+    else:
+        print(f"  ⚠️ Không tìm thấy checkpoint tại: {args.save_path}/{model_name}/{args.dataset_name}/{model_name}_best.pth")
+        result["arch_mismatch"] = None
+
+    model = model.to(device)
+
+    try:
+        flops_info = count_flops(model, input_size=(1, 3, args.picture_size, args.picture_size), device=device)
+        result["flops_m"] = flops_info["flops_m"]
+    except Exception as e:
+        print(f"  FLOPs lỗi: {_friendly_cuda_error(e, device)}")
+        result["flops_m"] = None
+
+    result["latency_ms"] = {}
+    for bs in args.latency_batch_sizes:
+        try:
+            medians = []
+            for _ in range(args.n_latency_repeats):
+                t_info = measure_inference_time(
+                    model, input_size=(bs, 3, args.picture_size, args.picture_size),
+                    device=device, n_warmup=args.n_warmup, n_runs=args.n_runs,
+                )
+                medians.append(t_info["median_ms"])
+                time.sleep(0.05)
+            result["latency_ms"][bs] = float(np.median(medians))
+            print(f"  Latency (bs={bs}): {result['latency_ms'][bs]:.3f} ms")
+        except RuntimeError as e:
+            result["latency_ms"][bs] = None
+            print(f"  Latency (bs={bs}) LỖI: {e}")
+
+    try:
+        mem_info = measure_peak_memory(model, input_size=(1, 3, args.picture_size, args.picture_size), device=device)
+        result["peak_memory_mb"] = mem_info["peak_memory_mb"]
+    except Exception as e:
+        result["peak_memory_mb"] = None
+        print(f"  Memory lỗi: {e}")
+
+    if ckpt_path is not None and not result["arch_mismatch"]:
+        try:
+            # --- TÍNH ACCURACY TRÊN TOÀN DATASET ---
+            full_acc_info = evaluate_accuracy(model, full_loader, device=device)
+            result["full_accuracy"] = full_acc_info["accuracy"]
+
+            # --- TÍNH METRICS TRÊN TẬP TEST ---
+            acc_info = evaluate_accuracy(model, test_loader, device=device)
+            result["test_accuracy"] = acc_info["accuracy"]
+            result["precision_macro"] = acc_info["precision_macro"]
+            result["recall_macro"] = acc_info["recall_macro"]
+            result["f1_macro"] = acc_info["f1_macro"]
+            result["f1_weighted"] = acc_info["f1_weighted"]
+            result["ids"] = compute_ids(acc_info["accuracy"], params_info["size_m"])
+
+            cm_path = plot_confusion_matrix(acc_info["confusion_matrix"], model_name, args.output_dir)
+            result["confusion_matrix_path"] = cm_path
+
+            print(
+                f"  ✅ Full Dataset Acc: {result['full_accuracy']:.2f}% | "
+                f"Test Acc: {result['test_accuracy']:.2f}% | "
+                f"Prec-Macro: {acc_info['precision_macro']:.2f}% | "
+                f"Rec-Macro: {acc_info['recall_macro']:.2f}% | "
+                f"F1-Macro: {acc_info['f1_macro']:.2f}% | "
+                f"F1-Weighted: {acc_info['f1_weighted']:.2f}% | "
+                f"IDS: {result['ids']:.2f}"
+            )
+        except Exception as e:
+            print(f"  ❌ Lỗi khi tính toán metrics: {e}")
+            result["full_accuracy"] = None
+            result["test_accuracy"] = None
+            result["precision_macro"] = None
+            result["recall_macro"] = None
+            result["f1_macro"] = None
+            result["f1_weighted"] = None
+    elif result["arch_mismatch"]:
+        print("  ⚠️ Bỏ qua accuracy vì kiến trúc không khớp checkpoint.")
+        result["full_accuracy"] = None
+        result["test_accuracy"] = None
+        result["precision_macro"] = None
+        result["recall_macro"] = None
+        result["f1_macro"] = None
+        result["f1_weighted"] = None
+    else:
+        result["full_accuracy"] = None
+        result["test_accuracy"] = None
+        result["precision_macro"] = None
+        result["recall_macro"] = None
+        result["f1_macro"] = None
+        result["f1_weighted"] = None
+
+    del model
+    if device == "cuda":
+        torch.cuda.empty_cache()
+    gc.collect()
+
+    return result
+"""
+def main():
+    datasetname = [
+        "German",
+        "Belgium",
+        "German_51k",
+        "NEU-DET_surface-dec",
+        "DCID",
+        "Belgium_ar"
+    ]
+    datasetpath = [
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar"
+    ]
+    args = get_args()
+    device = auto_device()
+    for i in range(0, 6):
+        args.__setattr__("dataset_name", datasetname[i])
+        args.__setattr__("root_dataset_path", datasetpath[i])
+        os.makedirs(args.output_dir, exist_ok=True)
+
+        print("=" * 135)
+        print(f"SO SÁNH MÔ HÌNH | Dataset: {args.dataset_name} | Device: {device}")
+        print("=" * 135)
+
+        test_loader, num_classes = build_test_loader(args)
+
+        all_results = []
+        for model_name in args.models:
+            try:
+                res = benchmark_one_model(model_name, args, test_loader, num_classes, device)
+            except Exception as e:
+                print(f"❌ LỖI với model {model_name}: {e}")
+                res = {"model_name": model_name, "error": str(e)}
+            all_results.append(res)
+
+        print("\n" + "=" * 135)
+        print("BẢNG TỔNG HỢP KẾT QUẢ")
+        print("=" * 135)
+        header = f"{'Model':<22s} | {'Params(M)':<9s} | {'FLOPs(M)':<9s} | {'Lat bs=1(ms)':<12s} | {'Mem(MB)':<8s} | {'Acc(%)':<7s} | {'Prec-Mac':<8s} | {'Rec-Mac':<8s} | {'F1-Mac':<8s} | {'F1-Wtd':<8s} | {'IDS':<7s}"
+        print(header)
+        print("-" * 135)
+
+        csv_rows = []
+        for r in all_results:
+            params_m = f"{r.get('params_m', 0):.3f}" if r.get("params_m") is not None else "N/A"
+            flops_m = f"{r.get('flops_m', 0):.2f}" if r.get("flops_m") is not None else "N/A"
+            lat1 = r.get("latency_ms", {}).get(1) if r.get("latency_ms") else None
+            lat1_str = f"{lat1:.3f}" if lat1 is not None else "N/A"
+            mem = f"{r.get('peak_memory_mb'):.1f}" if r.get("peak_memory_mb") is not None else "N/A"
+            acc = f"{r.get('accuracy'):.2f}" if r.get("accuracy") is not None else "N/A"
+            prec_m = f"{r.get('precision_macro'):.2f}" if r.get("precision_macro") is not None else "N/A"
+            rec_m = f"{r.get('recall_macro'):.2f}" if r.get("recall_macro") is not None else "N/A"
+            f1m = f"{r.get('f1_macro'):.2f}" if r.get("f1_macro") is not None else "N/A"
+            f1w = f"{r.get('f1_weighted'):.2f}" if r.get("f1_weighted") is not None else "N/A"
+            ids = f"{r.get('ids'):.2f}" if r.get("ids") is not None else "N/A"
+
+            print(
+                f"{r['model_name']:<22s} | {params_m:<9s} | {flops_m:<9s} | {lat1_str:<12s} | {mem:<8s} | {acc:<7s} | {prec_m:<8s} | {rec_m:<8s} | {f1m:<8s} | {f1w:<8s} | {ids:<7s}"
+            )
+
+            csv_rows.append({
+                "model_name": r["model_name"],
+                "params_m": r.get("params_m"),
+                "flops_m": r.get("flops_m"),
+                **{f"latency_bs{bs}_ms": r.get("latency_ms", {}).get(bs) for bs in args.latency_batch_sizes},
+                "peak_memory_mb": r.get("peak_memory_mb"),
+                "accuracy": r.get("accuracy"),
+                "precision_macro": r.get("precision_macro"),
+                "recall_macro": r.get("recall_macro"),
+                "f1_macro": r.get("f1_macro"),
+                "f1_weighted": r.get("f1_weighted"),
+                "ids": r.get("ids"),
+                "checkpoint_found": r.get("checkpoint_found"),
+                "arch_mismatch": r.get("arch_mismatch"),
+            })
+
+        print("=" * 135)
+
+        csv_path = os.path.join(args.output_dir, f"benchmark_results_{args.dataset_name}.csv")
+        if csv_rows:
+            fieldnames = list(csv_rows[0].keys())
+            with open(csv_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(csv_rows)
+            print(f"\n📄 Đã lưu kết quả CSV: {csv_path}")
+"""
 
 
 def main():
+    datasetname = [
+        "German",
+        "Belgium",
+        "German_51k",
+        "NEU-DET_surface-dec",
+        "DCID",
+        "Belgium_ar"
+    ]
+    datasetpath = [
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar"
+    ]
     args = get_args()
     device = auto_device()
-    os.makedirs(args.output_dir, exist_ok=True)
+    for i in range(4, 5):
+        args.__setattr__("dataset_name", datasetname[i])
+        args.__setattr__("root_dataset_path", datasetpath[i])
+        os.makedirs(args.output_dir, exist_ok=True)
 
-    print("=" * 80)
-    print(f"SO SÁNH MÔ HÌNH | Dataset: {args.dataset_name} | Device: {device}")
-    print("=" * 80)
+        print("=" * 145)
+        print(f"SO SÁNH MÔ HÌNH | Dataset: {args.dataset_name} | Device: {device}")
+        print("=" * 145)
 
-    test_loader, num_classes = build_test_loader(args)
+        # Lấy cả 2 loader
+        full_loader, test_loader, num_classes = build_eval_loaders(args)
 
-    all_results = []
-    for model_name in args.models:
-        try:
-            res = benchmark_one_model(model_name, args, test_loader, num_classes, device)
-        except Exception as e:
-            print(f"❌ LỖI với model {model_name}: {e}")
-            res = {"model_name": model_name, "error": str(e)}
-        all_results.append(res)
+        all_results = []
+        for model_name in args.models:
+            try:
+                res = benchmark_one_model(model_name, args, full_loader, test_loader, num_classes, device)
+            except Exception as e:
+                print(f"❌ LỖI với model {model_name}: {e}")
+                res = {"model_name": model_name, "error": str(e)}
+            all_results.append(res)
 
-    print("\n" + "=" * 110)
-    print("BẢNG TỔNG HỢP KẾT QUẢ")
-    print("=" * 110)
-    header = f"{'Model':<22s} | {'Params(M)':<10s} | {'FLOPs(M)':<10s} | {'Lat bs=1(ms)':<12s} | {'Mem(MB)':<9s} | {'Acc(%)':<8s} | {'F1-macro':<9s} | {'IDS':<8s}"
-    print(header)
-    print("-" * 110)
+        print("\n" + "=" * 145)
+        print("BẢNG TỔNG HỢP KẾT QUẢ")
+        print("=" * 145)
+        header = f"{'Model':<22s} | {'Params(M)':<9s} | {'FLOPs(M)':<9s} | {'Lat bs=1(ms)':<12s} | {'Mem(MB)':<8s} | {'Full Acc':<8s} | {'Test Acc':<8s} | {'Prec-Mac':<8s} | {'Rec-Mac':<8s} | {'F1-Mac':<8s} | {'F1-Wtd':<8s} | {'IDS':<7s}"
+        print(header)
+        print("-" * 145)
 
-    csv_rows = []
-    for r in all_results:
-        params_m = f"{r.get('params_m', 0):.3f}" if r.get("params_m") is not None else "N/A"
-        flops_m = f"{r.get('flops_m', 0):.2f}" if r.get("flops_m") is not None else "N/A"
-        lat1 = r.get("latency_ms", {}).get(1) if r.get("latency_ms") else None
-        lat1_str = f"{lat1:.3f}" if lat1 is not None else "N/A"
-        mem = f"{r.get('peak_memory_mb'):.1f}" if r.get("peak_memory_mb") is not None else "N/A"
-        acc = f"{r.get('accuracy'):.2f}" if r.get("accuracy") is not None else "N/A"
-        f1m = f"{r.get('f1_macro'):.2f}" if r.get("f1_macro") is not None else "N/A"
-        ids = f"{r.get('ids'):.2f}" if r.get("ids") is not None else "N/A"
+        csv_rows = []
+        for r in all_results:
+            params_m = f"{r.get('params_m', 0):.3f}" if r.get("params_m") is not None else "N/A"
+            flops_m = f"{r.get('flops_m', 0):.2f}" if r.get("flops_m") is not None else "N/A"
+            lat1 = r.get("latency_ms", {}).get(1) if r.get("latency_ms") else None
+            lat1_str = f"{lat1:.3f}" if lat1 is not None else "N/A"
+            mem = f"{r.get('peak_memory_mb'):.1f}" if r.get("peak_memory_mb") is not None else "N/A"
 
-        print(
-            f"{r['model_name']:<22s} | {params_m:<10s} | {flops_m:<10s} | {lat1_str:<12s} | {mem:<9s} | {acc:<8s} | {f1m:<9s} | {ids:<8s}")
+            full_acc = f"{r.get('full_accuracy'):.2f}" if r.get("full_accuracy") is not None else "N/A"
+            test_acc = f"{r.get('test_accuracy'):.2f}" if r.get("test_accuracy") is not None else "N/A"
 
-        csv_rows.append({
-            "model_name": r["model_name"],
-            "params_m": r.get("params_m"),
-            "flops_m": r.get("flops_m"),
-            **{f"latency_bs{bs}_ms": r.get("latency_ms", {}).get(bs) for bs in args.latency_batch_sizes},
-            "peak_memory_mb": r.get("peak_memory_mb"),
-            "accuracy": r.get("accuracy"),
-            "f1_macro": r.get("f1_macro"),
-            "f1_weighted": r.get("f1_weighted"),
-            "ids": r.get("ids"),
-            "checkpoint_found": r.get("checkpoint_found"),
-            "arch_mismatch": r.get("arch_mismatch"),
-        })
+            prec_m = f"{r.get('precision_macro'):.2f}" if r.get("precision_macro") is not None else "N/A"
+            rec_m = f"{r.get('recall_macro'):.2f}" if r.get("recall_macro") is not None else "N/A"
+            f1m = f"{r.get('f1_macro'):.2f}" if r.get("f1_macro") is not None else "N/A"
+            f1w = f"{r.get('f1_weighted'):.2f}" if r.get("f1_weighted") is not None else "N/A"
+            ids = f"{r.get('ids'):.2f}" if r.get("ids") is not None else "N/A"
 
-    print("=" * 110)
+            print(
+                f"{r['model_name']:<22s} | {params_m:<9s} | {flops_m:<9s} | {lat1_str:<12s} | {mem:<8s} | {full_acc:<8s} | {test_acc:<8s} | {prec_m:<8s} | {rec_m:<8s} | {f1m:<8s} | {f1w:<8s} | {ids:<7s}"
+            )
 
-    csv_path = os.path.join(args.output_dir, f"benchmark_results_{args.dataset_name}.csv")
-    if csv_rows:
-        fieldnames = list(csv_rows[0].keys())
-        with open(csv_path, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            writer.writerows(csv_rows)
-        print(f"\n📄 Đã lưu kết quả CSV: {csv_path}")
+            csv_rows.append({
+                "model_name": r["model_name"],
+                "params_m": r.get("params_m"),
+                "flops_m": r.get("flops_m"),
+                **{f"latency_bs{bs}_ms": r.get("latency_ms", {}).get(bs) for bs in args.latency_batch_sizes},
+                "peak_memory_mb": r.get("peak_memory_mb"),
+                "full_accuracy": r.get("full_accuracy"),
+                "test_accuracy": r.get("test_accuracy"),
+                "precision_macro": r.get("precision_macro"),
+                "recall_macro": r.get("recall_macro"),
+                "f1_macro": r.get("f1_macro"),
+                "f1_weighted": r.get("f1_weighted"),
+                "ids": r.get("ids"),
+                "checkpoint_found": r.get("checkpoint_found"),
+                "arch_mismatch": r.get("arch_mismatch"),
+            })
 
+        print("=" * 145)
+
+        csv_path = os.path.join(args.output_dir, f"benchmark_results_{args.dataset_name}.csv")
+        if csv_rows:
+            fieldnames = list(csv_rows[0].keys())
+            with open(csv_path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(csv_rows)
+            print(f"\n📄 Đã lưu kết quả CSV: {csv_path}")
 
 if __name__ == "__main__":
     main()
