@@ -1,0 +1,16 @@
+2026-09-09 12:58:13 [INFO] Dataset: Belgium_ar_new | Số nhãn (classes): 62 | Tổng số ảnh: 99330
+2026-09-09 12:58:13 [INFO] Dữ liệu đã chia -> Train (70%): 64564 | Val (15%): 17383 | Test (15%): 17383
+2026-09-09 12:58:13 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 12:58:13 [INFO]   Batch 0: 29 classes (first 5: [1, 3, 7, 8, 12])
+2026-09-09 12:58:13 [INFO]   Batch 1: 24 classes (first 5: [4, 7, 10, 13, 17])
+2026-09-09 12:58:13 [INFO]   Batch 2: 26 classes (first 5: [0, 1, 12, 13, 17])
+2026-09-09 12:58:13 [INFO]   Batch 3: 27 classes (first 5: [0, 7, 9, 17, 18])
+2026-09-09 12:58:13 [INFO]   Batch 4: 34 classes (first 5: [1, 4, 7, 8, 14])
+2026-09-09 12:58:14 [INFO] ✅ Shuffle tốt! Trung bình 28.0 classes/batch
+2026-09-09 12:58:14 [INFO] ============================================================
+2026-09-09 12:58:14 [INFO] Starting training: SUPER_MAMBA_DEPT_4
+2026-09-09 12:58:14 [INFO] Dataset: Belgium_ar_new | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar
+2026-09-09 12:58:14 [INFO] Device: cuda
+2026-09-09 12:58:14 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 12:58:14 [INFO] ============================================================

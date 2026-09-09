@@ -45,7 +45,7 @@ def get_args():
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=25, type=int)
+    parser.add_argument('--early_stop_patience', default=10, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -74,8 +74,8 @@ def build_Model(name, num_classes, pretrained=True):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.9,
-            conv_frac=0,
+            ssm_frac=0.7,
+            conv_frac=0.2,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -87,8 +87,8 @@ def build_Model(name, num_classes, pretrained=True):
             ssm_ratio=1.5,
             mamba_blocks=(2, 2),
             cnn_blocks=(1, 2),
-            ssm_frac=0.9,
-            conv_frac=0,
+            ssm_frac=0.7,
+            conv_frac=0.2,
             use_aux=True,
         )
     elif name == "HEAVY_HYBRIC_MAMBA":
@@ -100,8 +100,8 @@ def build_Model(name, num_classes, pretrained=True):
             ssm_ratio=2.0,
             mamba_blocks=(2, 3),
             cnn_blocks=(2, 2),
-            ssm_frac=0.9,
-            conv_frac=0,
+            ssm_frac=0.7,
+            conv_frac=0.2,
             use_aux=True,
         )
     elif name == "SUPER_MAMBA_DEPT_4":
@@ -470,9 +470,9 @@ def load_checkpoint_safely(
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 25:
+    elif epoch < 55:
         lr = base_lr
-    elif epoch < 45:
+    elif epoch < 60:
         lr = base_lr * 0.1
     elif epoch < 65:
         lr = base_lr * 0.01
@@ -807,7 +807,8 @@ if __name__ == "__main__":
         "DCID",
         "Belgium_ar",
         "German_0.2_0.7)",
-        "test"
+        "test",
+        "Belgium_ar_new_3",
     ]
     datasetpath=[
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
@@ -816,18 +817,18 @@ if __name__ == "__main__":
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
         "/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35",
-        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar"
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3"
     ]
 
     args = get_args()
-    for i in range (0,1):
+    for i in range (2,3):
         args.__setattr__("model_name", modelname[i])
 
-        args.__setattr__("dataset_name", datasetname[8])
+        args.__setattr__("dataset_name", datasetname[9])
         args.__setattr__("root_dataset_path", datasetpath[6])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
-        args.__setattr__("num_epoch", 100)
+        args.__setattr__("num_epoch", 70)
         args.__setattr__("lr", 1e-3)
         args.__setattr__("min_lr", 1e-6)
 

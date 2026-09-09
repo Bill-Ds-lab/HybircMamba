@@ -1,0 +1,100 @@
+2026-09-09 15:35:40 [INFO] Dataset: Belgium_ar_new_3 | Số nhãn (classes): 62 | Tổng số ảnh: 99330
+2026-09-09 15:35:40 [INFO] Dữ liệu đã chia -> Train (70%): 64564 | Val (15%): 17383 | Test (15%): 17383
+2026-09-09 15:35:40 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 15:35:40 [INFO]   Batch 0: 28 classes (first 5: [0, 1, 2, 5, 7])
+2026-09-09 15:35:40 [INFO]   Batch 1: 27 classes (first 5: [7, 10, 13, 14, 17])
+2026-09-09 15:35:40 [INFO]   Batch 2: 27 classes (first 5: [1, 7, 8, 12, 13])
+2026-09-09 15:35:40 [INFO]   Batch 3: 31 classes (first 5: [4, 6, 7, 10, 13])
+2026-09-09 15:35:40 [INFO]   Batch 4: 26 classes (first 5: [1, 5, 7, 9, 10])
+2026-09-09 15:35:40 [INFO] ✅ Shuffle tốt! Trung bình 27.8 classes/batch
+2026-09-09 15:35:40 [INFO] ============================================================
+2026-09-09 15:35:40 [INFO] Starting training: HEAVY_HYBRIC_MAMBA
+2026-09-09 15:35:40 [INFO] Dataset: Belgium_ar_new_3 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3
+2026-09-09 15:35:40 [INFO] Device: cuda
+2026-09-09 15:35:40 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 15:35:40 [INFO] ============================================================
+2026-09-09 15:35:40 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HEAVY_HYBRIC_MAMBA/Belgium_ar_new_3/HEAVY_HYBRIC_MAMBA_best.pth
+2026-09-09 15:36:41 [INFO] Epoch 041 | Train Loss: 0.2152 | Train Acc: 0.9641 | Val Loss: 0.0657 | Val Acc: 0.9791
+2026-09-09 15:36:41 [INFO] ✓ Saved best model: Val Acc=0.9791 at epoch 41
+2026-09-09 15:48:09 [INFO] Dataset: Belgium_ar_new_3 | Số nhãn (classes): 62 | Tổng số ảnh: 99330
+2026-09-09 15:48:09 [INFO] Dữ liệu đã chia -> Train (70%): 64564 | Val (15%): 17383 | Test (15%): 17383
+2026-09-09 15:48:09 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 15:48:09 [INFO]   Batch 0: 24 classes (first 5: [1, 5, 7, 13, 14])
+2026-09-09 15:48:09 [INFO]   Batch 1: 29 classes (first 5: [6, 8, 13, 15, 17])
+2026-09-09 15:48:09 [INFO]   Batch 2: 30 classes (first 5: [1, 7, 8, 13, 17])
+2026-09-09 15:48:09 [INFO]   Batch 3: 34 classes (first 5: [1, 6, 7, 9, 10])
+2026-09-09 15:48:09 [INFO]   Batch 4: 33 classes (first 5: [1, 6, 7, 12, 17])
+2026-09-09 15:48:09 [INFO] ✅ Shuffle tốt! Trung bình 30.0 classes/batch
+2026-09-09 15:48:09 [INFO] ============================================================
+2026-09-09 15:48:09 [INFO] Starting training: HEAVY_HYBRIC_MAMBA
+2026-09-09 15:48:09 [INFO] Dataset: Belgium_ar_new_3 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3
+2026-09-09 15:48:09 [INFO] Device: cuda
+2026-09-09 15:48:09 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 15:48:09 [INFO] ============================================================
+2026-09-09 15:48:09 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HEAVY_HYBRIC_MAMBA/Belgium_ar_new_3/HEAVY_HYBRIC_MAMBA_best.pth
+2026-09-09 15:49:09 [INFO] Epoch 042 | Train Loss: 0.2119 | Train Acc: 0.9649 | Val Loss: 0.0647 | Val Acc: 0.9787
+2026-09-09 15:50:05 [INFO] Epoch 043 | Train Loss: 0.2098 | Train Acc: 0.9657 | Val Loss: 0.0636 | Val Acc: 0.9796
+2026-09-09 15:50:05 [INFO] ✓ Saved best model: Val Acc=0.9796 at epoch 43
+2026-09-09 15:51:02 [INFO] Epoch 044 | Train Loss: 0.2027 | Train Acc: 0.9657 | Val Loss: 0.0641 | Val Acc: 0.9800
+2026-09-09 15:51:02 [INFO] ✓ Saved best model: Val Acc=0.9800 at epoch 44
+2026-09-09 15:51:59 [INFO] Epoch 045 | Train Loss: 0.1906 | Train Acc: 0.9686 | Val Loss: 0.0620 | Val Acc: 0.9804
+2026-09-09 15:51:59 [INFO] ✓ Saved best model: Val Acc=0.9804 at epoch 45
+2026-09-09 15:52:56 [INFO] Epoch 046 | Train Loss: 0.1906 | Train Acc: 0.9684 | Val Loss: 0.0608 | Val Acc: 0.9807
+2026-09-09 15:52:56 [INFO] ✓ Saved best model: Val Acc=0.9807 at epoch 46
+2026-09-09 15:53:53 [INFO] Epoch 047 | Train Loss: 0.1880 | Train Acc: 0.9698 | Val Loss: 0.0612 | Val Acc: 0.9804
+2026-09-09 15:54:49 [INFO] Epoch 048 | Train Loss: 0.1865 | Train Acc: 0.9695 | Val Loss: 0.0608 | Val Acc: 0.9809
+2026-09-09 15:54:49 [INFO] ✓ Saved best model: Val Acc=0.9809 at epoch 48
+2026-09-09 15:55:45 [INFO] Epoch 049 | Train Loss: 0.1873 | Train Acc: 0.9698 | Val Loss: 0.0601 | Val Acc: 0.9809
+2026-09-09 15:56:41 [INFO] Epoch 050 | Train Loss: 0.1865 | Train Acc: 0.9699 | Val Loss: 0.0602 | Val Acc: 0.9808
+2026-09-09 15:57:36 [INFO] Epoch 051 | Train Loss: 0.1848 | Train Acc: 0.9701 | Val Loss: 0.0606 | Val Acc: 0.9808
+2026-09-09 16:00:03 [INFO] Dataset: Belgium_ar_new_3 | Số nhãn (classes): 62 | Tổng số ảnh: 99330
+2026-09-09 16:00:04 [INFO] Dữ liệu đã chia -> Train (70%): 64564 | Val (15%): 17383 | Test (15%): 17383
+2026-09-09 16:00:04 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 16:00:06 [INFO]   Batch 0: 32 classes (first 5: [1, 6, 7, 8, 13])
+2026-09-09 16:00:06 [INFO]   Batch 1: 34 classes (first 5: [4, 5, 6, 9, 13])
+2026-09-09 16:00:06 [INFO]   Batch 2: 31 classes (first 5: [1, 2, 7, 9, 10])
+2026-09-09 16:00:06 [INFO]   Batch 3: 26 classes (first 5: [1, 7, 16, 17, 19])
+2026-09-09 16:00:06 [INFO]   Batch 4: 25 classes (first 5: [7, 11, 12, 18, 19])
+2026-09-09 16:00:06 [INFO] ✅ Shuffle tốt! Trung bình 29.6 classes/batch
+2026-09-09 16:00:06 [INFO] ============================================================
+2026-09-09 16:00:06 [INFO] Starting training: HEAVY_HYBRIC_MAMBA
+2026-09-09 16:00:06 [INFO] Dataset: Belgium_ar_new_3 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3
+2026-09-09 16:00:06 [INFO] Device: cuda
+2026-09-09 16:00:06 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 16:00:06 [INFO] ============================================================
+2026-09-09 16:00:06 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HEAVY_HYBRIC_MAMBA/Belgium_ar_new_3/HEAVY_HYBRIC_MAMBA_best.pth
+2026-09-09 16:01:03 [INFO] Epoch 049 | Train Loss: 0.3246 | Train Acc: 0.9455 | Val Loss: 0.0959 | Val Acc: 0.9707
+2026-09-09 16:01:58 [INFO] Epoch 050 | Train Loss: 0.3070 | Train Acc: 0.9482 | Val Loss: 0.0928 | Val Acc: 0.9705
+2026-09-09 16:02:55 [INFO] Epoch 051 | Train Loss: 0.2904 | Train Acc: 0.9510 | Val Loss: 0.0910 | Val Acc: 0.9712
+2026-09-09 16:03:51 [INFO] Epoch 052 | Train Loss: 0.2858 | Train Acc: 0.9514 | Val Loss: 0.0929 | Val Acc: 0.9718
+2026-09-09 16:04:47 [INFO] Epoch 053 | Train Loss: 0.2747 | Train Acc: 0.9539 | Val Loss: 0.0862 | Val Acc: 0.9742
+2026-09-09 16:05:44 [INFO] Epoch 054 | Train Loss: 0.2630 | Train Acc: 0.9549 | Val Loss: 0.0853 | Val Acc: 0.9744
+2026-09-09 16:06:40 [INFO] Epoch 055 | Train Loss: 0.2009 | Train Acc: 0.9663 | Val Loss: 0.0655 | Val Acc: 0.9796
+2026-09-09 16:07:36 [INFO] Epoch 056 | Train Loss: 0.1806 | Train Acc: 0.9706 | Val Loss: 0.0636 | Val Acc: 0.9800
+2026-09-09 16:08:31 [INFO] Epoch 057 | Train Loss: 0.1715 | Train Acc: 0.9722 | Val Loss: 0.0606 | Val Acc: 0.9810
+2026-09-09 16:08:31 [INFO] ✓ Saved best model: Val Acc=0.9810 at epoch 57
+2026-09-09 16:09:26 [INFO] Epoch 058 | Train Loss: 0.1690 | Train Acc: 0.9730 | Val Loss: 0.0609 | Val Acc: 0.9807
+2026-09-09 16:10:22 [INFO] Epoch 059 | Train Loss: 0.1618 | Train Acc: 0.9743 | Val Loss: 0.0597 | Val Acc: 0.9809
+2026-09-09 16:11:17 [INFO] Epoch 060 | Train Loss: 0.1526 | Train Acc: 0.9760 | Val Loss: 0.0586 | Val Acc: 0.9816
+2026-09-09 16:11:17 [INFO] ✓ Saved best model: Val Acc=0.9816 at epoch 60
+2026-09-09 16:12:12 [INFO] Epoch 061 | Train Loss: 0.1540 | Train Acc: 0.9757 | Val Loss: 0.0589 | Val Acc: 0.9810
+2026-09-09 16:13:08 [INFO] Epoch 062 | Train Loss: 0.1531 | Train Acc: 0.9752 | Val Loss: 0.0582 | Val Acc: 0.9817
+2026-09-09 16:13:08 [INFO] ✓ Saved best model: Val Acc=0.9817 at epoch 62
+2026-09-09 16:14:04 [INFO] Epoch 063 | Train Loss: 0.1521 | Train Acc: 0.9761 | Val Loss: 0.0578 | Val Acc: 0.9815
+2026-09-09 16:15:02 [INFO] Epoch 064 | Train Loss: 0.1526 | Train Acc: 0.9756 | Val Loss: 0.0579 | Val Acc: 0.9816
+2026-09-09 16:16:00 [INFO] Epoch 065 | Train Loss: 0.1503 | Train Acc: 0.9761 | Val Loss: 0.0578 | Val Acc: 0.9814
+2026-09-09 16:16:58 [INFO] Epoch 066 | Train Loss: 0.1514 | Train Acc: 0.9760 | Val Loss: 0.0579 | Val Acc: 0.9814
+2026-09-09 16:17:55 [INFO] Epoch 067 | Train Loss: 0.1504 | Train Acc: 0.9758 | Val Loss: 0.0578 | Val Acc: 0.9816
+2026-09-09 16:18:51 [INFO] Epoch 068 | Train Loss: 0.1518 | Train Acc: 0.9758 | Val Loss: 0.0578 | Val Acc: 0.9814
+2026-09-09 16:19:47 [INFO] Epoch 069 | Train Loss: 0.1506 | Train Acc: 0.9770 | Val Loss: 0.0574 | Val Acc: 0.9818
+2026-09-09 16:19:47 [INFO] ✓ Saved best model: Val Acc=0.9818 at epoch 69
+2026-09-09 16:19:47 [INFO] Evaluating Best Model on TEST Set...
+2026-09-09 16:19:47 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/HEAVY_HYBRIC_MAMBA/Belgium_ar_new_3/HEAVY_HYBRIC_MAMBA_best.pth
+2026-09-09 16:19:52 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9820 | F1-Macro: 0.9753 | F1-Weighted: 0.9820

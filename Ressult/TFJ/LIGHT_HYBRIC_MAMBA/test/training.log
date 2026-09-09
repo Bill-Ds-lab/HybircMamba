@@ -568,3 +568,56 @@
 2026-09-09 10:43:34 [INFO] ✓ Saved best model: Val Acc=0.8879 at epoch 2
 2026-09-09 10:43:51 [INFO] Epoch 003 | Train Loss: 1.1523 | Train Acc: 0.8409 | Val Loss: 0.2631 | Val Acc: 0.9221
 2026-09-09 10:43:51 [INFO] ✓ Saved best model: Val Acc=0.9221 at epoch 3
+2026-09-09 13:31:22 [INFO] Dataset: test | Số nhãn (classes): 6 | Tổng số ảnh: 1800
+2026-09-09 13:31:22 [INFO] Dữ liệu đã chia -> Train (70%): 1170 | Val (15%): 315 | Test (15%): 315
+2026-09-09 13:31:22 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 13:31:22 [INFO]   Batch 0: 5 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-09 13:31:22 [INFO]   Batch 1: 3 classes (first 5: [2, 3, 4])
+2026-09-09 13:31:22 [INFO]   Batch 2: 4 classes (first 5: [0, 1, 2, 5])
+2026-09-09 13:31:22 [INFO]   Batch 3: 4 classes (first 5: [0, 1, 3, 5])
+2026-09-09 13:31:22 [INFO]   Batch 4: 3 classes (first 5: [0, 2, 5])
+2026-09-09 13:31:23 [WARNING] ⚠️ WARNING: Trung bình 3.8 classes/batch - Dữ liệu chưa được trộn đều!
+2026-09-09 13:31:23 [INFO] ============================================================
+2026-09-09 13:31:23 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-09 13:31:23 [INFO] Dataset: test | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET
+2026-09-09 13:31:23 [INFO] Device: cuda
+2026-09-09 13:31:23 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 13:31:23 [INFO] ============================================================
+2026-09-09 13:31:33 [INFO] Epoch 000 | Train Loss: 2.6816 | Train Acc: 0.3043 | Val Loss: 1.3741 | Val Acc: 0.5365
+2026-09-09 13:31:33 [INFO] ✓ Saved best model: Val Acc=0.5365 at epoch 0
+2026-09-09 13:31:38 [INFO] Epoch 001 | Train Loss: 2.3422 | Train Acc: 0.4744 | Val Loss: 1.1336 | Val Acc: 0.6095
+2026-09-09 13:31:38 [INFO] ✓ Saved best model: Val Acc=0.6095 at epoch 1
+2026-09-09 13:31:44 [INFO] Epoch 002 | Train Loss: 1.9416 | Train Acc: 0.5590 | Val Loss: 0.7342 | Val Acc: 0.7206
+2026-09-09 13:31:44 [INFO] ✓ Saved best model: Val Acc=0.7206 at epoch 2
+2026-09-09 13:31:50 [INFO] Epoch 003 | Train Loss: 1.7418 | Train Acc: 0.6000 | Val Loss: 0.5948 | Val Acc: 0.7714
+2026-09-09 13:31:50 [INFO] ✓ Saved best model: Val Acc=0.7714 at epoch 3
+2026-09-09 13:31:54 [INFO] Epoch 004 | Train Loss: 1.5664 | Train Acc: 0.6214 | Val Loss: 0.5433 | Val Acc: 0.7905
+2026-09-09 13:31:55 [INFO] ✓ Saved best model: Val Acc=0.7905 at epoch 4
+2026-09-09 13:32:03 [INFO] Epoch 005 | Train Loss: 1.4373 | Train Acc: 0.6538 | Val Loss: 0.5779 | Val Acc: 0.7873
+2026-09-09 13:32:08 [INFO] Epoch 006 | Train Loss: 1.3505 | Train Acc: 0.6692 | Val Loss: 0.6113 | Val Acc: 0.7079
+2026-09-09 13:32:14 [INFO] Epoch 007 | Train Loss: 1.2451 | Train Acc: 0.7188 | Val Loss: 0.5164 | Val Acc: 0.8063
+2026-09-09 13:32:14 [INFO] ✓ Saved best model: Val Acc=0.8063 at epoch 7
+2026-09-09 13:32:21 [INFO] Epoch 008 | Train Loss: 1.2309 | Train Acc: 0.7137 | Val Loss: 0.4818 | Val Acc: 0.8254
+2026-09-09 13:32:21 [INFO] ✓ Saved best model: Val Acc=0.8254 at epoch 8
+2026-09-09 13:32:26 [INFO] Epoch 009 | Train Loss: 1.1877 | Train Acc: 0.7385 | Val Loss: 0.4827 | Val Acc: 0.8159
+2026-09-09 13:32:34 [INFO] Epoch 010 | Train Loss: 1.1570 | Train Acc: 0.7342 | Val Loss: 0.3936 | Val Acc: 0.8571
+2026-09-09 13:32:34 [INFO] ✓ Saved best model: Val Acc=0.8571 at epoch 10
+2026-09-09 13:32:38 [INFO] Epoch 011 | Train Loss: 1.1155 | Train Acc: 0.7393 | Val Loss: 0.4390 | Val Acc: 0.8603
+2026-09-09 13:32:38 [INFO] ✓ Saved best model: Val Acc=0.8603 at epoch 11
+2026-09-09 13:32:47 [INFO] Epoch 012 | Train Loss: 0.9823 | Train Acc: 0.7846 | Val Loss: 0.3802 | Val Acc: 0.8571
+2026-09-09 13:32:51 [INFO] Epoch 013 | Train Loss: 1.0011 | Train Acc: 0.7744 | Val Loss: 0.3761 | Val Acc: 0.8286
+2026-09-09 13:32:56 [INFO] Epoch 014 | Train Loss: 0.8767 | Train Acc: 0.8137 | Val Loss: 0.4247 | Val Acc: 0.8540
+2026-09-09 13:33:04 [INFO] Epoch 015 | Train Loss: 0.8615 | Train Acc: 0.8043 | Val Loss: 0.2597 | Val Acc: 0.9175
+2026-09-09 13:33:04 [INFO] ✓ Saved best model: Val Acc=0.9175 at epoch 15
+2026-09-09 13:33:09 [INFO] Epoch 016 | Train Loss: 0.8235 | Train Acc: 0.8248 | Val Loss: 0.3088 | Val Acc: 0.8476
+2026-09-09 13:33:17 [INFO] Epoch 017 | Train Loss: 0.7835 | Train Acc: 0.8171 | Val Loss: 0.3354 | Val Acc: 0.8571
+2026-09-09 13:33:22 [INFO] Epoch 018 | Train Loss: 0.7856 | Train Acc: 0.8342 | Val Loss: 0.1740 | Val Acc: 0.9397
+2026-09-09 13:33:22 [INFO] ✓ Saved best model: Val Acc=0.9397 at epoch 18
+2026-09-09 13:33:28 [INFO] Epoch 019 | Train Loss: 0.7613 | Train Acc: 0.8291 | Val Loss: 0.2042 | Val Acc: 0.9365
+2026-09-09 13:33:35 [INFO] Epoch 020 | Train Loss: 0.6231 | Train Acc: 0.8624 | Val Loss: 0.2337 | Val Acc: 0.9175
+2026-09-09 13:33:40 [INFO] Epoch 021 | Train Loss: 0.6138 | Train Acc: 0.8726 | Val Loss: 0.1864 | Val Acc: 0.9365
+2026-09-09 13:33:48 [INFO] Epoch 022 | Train Loss: 0.6000 | Train Acc: 0.8675 | Val Loss: 0.1983 | Val Acc: 0.9333
+2026-09-09 13:33:52 [INFO] Epoch 023 | Train Loss: 0.5876 | Train Acc: 0.8803 | Val Loss: 0.1718 | Val Acc: 0.9365
+2026-09-09 13:33:58 [INFO] Epoch 024 | Train Loss: 0.6034 | Train Acc: 0.8718 | Val Loss: 0.1877 | Val Acc: 0.9333
+2026-09-09 13:34:06 [INFO] Epoch 025 | Train Loss: 0.6480 | Train Acc: 0.8607 | Val Loss: 0.2209 | Val Acc: 0.9206
