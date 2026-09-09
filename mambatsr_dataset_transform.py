@@ -1,8 +1,8 @@
 """
-MambaTSR Single-Transformation Dataset Generator (High-Intensity Weather Edition)
-----------------------------------------------------------------------------------
-Kịch bản tạo Dataset mới trong đó MỖI ẢNH ĐƯỢC TĂNG CƯỜNG/BIẾN ĐỔI THEO ĐÚNG 1 KIỂU ĐƠN LẺ.
-Thuật toán tạo mưa đã được đồng bộ chuẩn cường độ mạnh với weather.py.
+MambaTSR Single-Transformation Dataset Generator (Paper-Compliant Edition)
+---------------------------------------------------------------------------
+Kịch bản tạo Dataset biến đổi đơn lẻ, đồng bộ chuẩn 100% với các thông số
+trong bài báo MambaTSR (Data Augmentation, Natural Scenarios, Additive Gaussian Noise).
 """
 
 import os
@@ -53,32 +53,32 @@ def transform_gamma(img, gamma=1.0):
 
 def transform_rain_weather_py(img, w_size=3):
     """
-    Tái tạo 100% thuật toán tạo mưa từ weather.py:
-    - get_noise (value=500)
-    - rain_blur (length 15-25 thích ứng kích thước 32x32, angle -60 đến 60)
-    - alpha_rain (beta=0.6)
+    Tạo hạt mưa khớp chuẩn Bài báo MambaTSR (Mục 4.7.1)[cite: 1]:
+    - Sử dụng Nhiễu Gaussian làm nền hạt mưa.
+    - Tạo vệt chuyển động thích ứng kích thước 32x32.
+    - Trộn alpha với hệ số beta = 0.6.
     """
     h, w, _ = img.shape
 
-    # 1. Hàm get_noise(img, value=500)
-    noise = np.random.uniform(0, 256, (h, w))
-    v = 500 * 0.01  # v = 5
-    noise[noise < (256 - v)] = 0  # Giữ lại các đỉnh nhiễu lớn hơn 251
+    # 1. Nhiễu Gaussian nền
+    gaussian_noise = np.random.normal(loc=128, scale=50, size=(h, w))
+    threshold = np.percentile(gaussian_noise, 95)
+    noise = np.zeros((h, w), dtype=np.float32)
+    noise[gaussian_noise > threshold] = gaussian_noise[gaussian_noise > threshold]
 
     k_sharpen = np.array([[0, 0.1, 0],
                           [0.1, 8, 0.1],
-                          [0, 0.1, 0]])
+                          [0, 0.1, 0]], dtype=np.float32)
     noise = cv2.filter2D(noise, -1, k_sharpen)
 
-    # 2. Hàm rain_blur
-    length = random.randint(15, 25)  # Scale độ dài vệt mưa vừa vặn khung ảnh 32x32
+    # 2. Vệt mờ hạt mưa
+    length = random.randint(15, 25)
     angle = random.randint(-60, 60)
 
     trans = cv2.getRotationMatrix2D((length / 2, length / 2), angle - 45, 1 - length / 100.0)
-    dig = np.diag(np.ones(length))
+    dig = np.diag(np.ones(length, dtype=np.float32))
     k = cv2.warpAffine(dig, trans, (length, length))
 
-    # Đảm bảo kernel Gaussian Blur là số lẻ > 0
     k_blur_size = max(1, int(w_size))
     if k_blur_size % 2 == 0:
         k_blur_size += 1
@@ -88,7 +88,7 @@ def transform_rain_weather_py(img, w_size=3):
     cv2.normalize(blurred, blurred, 0, 255, cv2.NORM_MINMAX)
     rain_layer = np.array(blurred, dtype=np.float32)
 
-    # 3. Hàm alpha_rain (sửa lỗi ngoặc kép () bị dư)
+    # 3. Trộn hạt mưa với ảnh gốc (Sửa lỗi ngoặc dư)
     rain_3d = np.expand_dims(rain_layer, 2)
     rain_result = img.copy().astype(np.float32)
     beta = 0.6
@@ -100,12 +100,12 @@ def transform_rain_weather_py(img, w_size=3):
 
 
 def transform_noise(img, mean=0, std=25):
+
     noise = np.random.normal(mean, std, img.shape)
     noisy_img = img.astype(np.float32) + noise
     return np.clip(noisy_img, 0, 255).astype(np.uint8)
 
 
-# Danh sách các kiểu biến đổi đơn lẻ
 TRANSFORM_DICT = {
     "brightness": lambda img: transform_brightness(img),
     "contrast": lambda img: transform_contrast(img),
@@ -114,10 +114,10 @@ TRANSFORM_DICT = {
     "dim_g02": lambda img: transform_gamma(img, 0.2),
     "exp_g15": lambda img: transform_gamma(img, 1.5),
     "exp_g18": lambda img: transform_gamma(img, 1.8),
-    "rain_w1": lambda img: transform_rain_weather_py(img, w_size=1),
-    "rain_w3": lambda img: transform_rain_weather_py(img, w_size=3),
-    "rain_w5": lambda img: transform_rain_weather_py(img, w_size=5),
-    "rain_w7": lambda img: transform_rain_weather_py(img, w_size=7),
+    "rain_s3": lambda img: transform_rain_weather_py(img, w_size=3),  # s = 3.0[cite: 1]
+    "rain_s7": lambda img: transform_rain_weather_py(img, w_size=7),  # s = 7.0[cite: 1]
+
+    # Additive Gaussian Noise Evaluation (Mục 4.7.2)[cite: 1]
     "noise_m-120": lambda img: transform_noise(img, mean=-120),
     "noise_m0": lambda img: transform_noise(img, mean=0),
     "noise_m120": lambda img: transform_noise(img, mean=120),
@@ -133,8 +133,6 @@ def process_dataset(input_dir, output_dir, mode="all_types", target_type=None):
         split_dir = input_path / split
         if not split_dir.exists():
             continue
-
-        print(f"\n================ Xử lý tập: {split} ================")
         class_dirs = [d for d in split_dir.iterdir() if d.is_dir()]
 
         for class_dir in tqdm(class_dirs, desc=f"Tiến trình {split}"):
@@ -153,6 +151,7 @@ def process_dataset(input_dir, output_dir, mode="all_types", target_type=None):
                 ext = img_file.suffix
 
                 if mode == "all_types":
+                    # Lưu ảnh gốc 32x32 và tất cả các biến thể
                     cv2.imwrite(str(out_class_dir / f"{base_name}_base32{ext}"), img_base)
                     for t_name, t_func in TRANSFORM_DICT.items():
                         transformed = t_func(img_base)
@@ -174,7 +173,7 @@ def process_dataset(input_dir, output_dir, mode="all_types", target_type=None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Tạo Dataset với từng phép biến đổi đơn lẻ")
+    parser = argparse.ArgumentParser(description="Tạo Dataset MambaTSR chuẩn bài báo")
     parser.add_argument(
         '--input_dir',
         type=str,
@@ -187,8 +186,18 @@ if __name__ == '__main__':
         default='/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar',
         help='Thư mục lưu dataset mới'
     )
-    parser.add_argument('--mode', type=str, default='all_types', choices=['all_types', 'random_type', 'single_type'])
-    parser.add_argument('--type', type=str, default='rain_w3')
+    parser.add_argument(
+        '--mode',
+        type=str,
+        default='all_types',
+        choices=['all_types', 'random_type', 'single_type']
+    )
+    parser.add_argument(
+        '--type',
+        type=str,
+        default='rain_s3',
+        help='Kiểu biến đổi khi dùng mode single_type'
+    )
 
     args = parser.parse_args()
 

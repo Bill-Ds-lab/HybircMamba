@@ -9,8 +9,11 @@ path = kagglehub.dataset_download("meowmeowmeowmeowmeow/gtsrb-german-traffic-sig
 
 print("Path to dataset files:", path)
 
-"""
+
 
 path = kagglehub.dataset_download("hoangdung/vietnam-traffic-sign-dataset")
 
 print("Path to dataset files:", path)
+"""
+from anomalib.data import MVTecLOCO
+dataset_loco = MVTecLOCO(root="/home/biu-linux/DeepLearning_Projects/DoAnNganh/data", download=True)

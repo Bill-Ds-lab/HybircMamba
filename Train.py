@@ -45,7 +45,7 @@ def get_args():
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=50, type=int)
+    parser.add_argument('--early_stop_patience', default=25, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -74,8 +74,8 @@ def build_Model(name, num_classes, pretrained=True):
             mbconv_expand_ratio=4,
             ssm_d_state=8,
             mamba_blocks=(1, 1),
-            ssm_frac=0.5,
-            conv_frac=0.3,
+            ssm_frac=0.9,
+            conv_frac=0,
             use_aux=True,
         )
     elif name == "MEDIUM_HYBRIC_MAMBA":
@@ -87,8 +87,8 @@ def build_Model(name, num_classes, pretrained=True):
             ssm_ratio=1.5,
             mamba_blocks=(2, 2),
             cnn_blocks=(1, 2),
-            ssm_frac=0.6,
-            conv_frac=0.25,
+            ssm_frac=0.9,
+            conv_frac=0,
             use_aux=True,
         )
     elif name == "HEAVY_HYBRIC_MAMBA":
@@ -100,8 +100,8 @@ def build_Model(name, num_classes, pretrained=True):
             ssm_ratio=2.0,
             mamba_blocks=(2, 3),
             cnn_blocks=(2, 2),
-            ssm_frac=0.7,
-            conv_frac=0.2,
+            ssm_frac=0.9,
+            conv_frac=0,
             use_aux=True,
         )
     elif name == "SUPER_MAMBA_DEPT_4":
@@ -466,24 +466,24 @@ def load_checkpoint_safely(
     return model, start_epoch, best_val_acc
 
 # ================================================================== LEARNING RATE SCHEDULE =========================================================
-"""
+
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 35:
+    elif epoch < 25:
         lr = base_lr
-    elif epoch < 60:
+    elif epoch < 45:
         lr = base_lr * 0.1
-    elif epoch < 80:
+    elif epoch < 65:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
 
     return max(lr, min_lr)
-"""
-import math
 
-def get_lr(epoch, base_lr=1e-4, min_lr=1e-6, total_epochs=130):
+import math
+"""
+def get_lr(epoch, base_lr=1e-4, min_lr=1e-6, total_epochs=50):
     warmup_epochs = 5
     if epoch < warmup_epochs:
         return base_lr * (epoch + 1) / warmup_epochs
@@ -491,6 +491,7 @@ def get_lr(epoch, base_lr=1e-4, min_lr=1e-6, total_epochs=130):
     progress = (epoch - warmup_epochs) / max(1, (total_epochs - warmup_epochs))
     lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + np.cos(np.pi * progress))
     return max(lr, min_lr)
+    """
 """
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5, total_epochs=100):
     if epoch < warmup_epochs:
@@ -804,7 +805,9 @@ if __name__ == "__main__":
         "NEU-DET_surface-dec",
         "German",
         "DCID",
-        "Belgium_ar"
+        "Belgium_ar",
+        "German_0.2_0.7)",
+        "test"
     ]
     datasetpath=[
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
@@ -817,15 +820,15 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    for i in range (4,12):
+    for i in range (0,1):
         args.__setattr__("model_name", modelname[i])
 
-        args.__setattr__("dataset_name", datasetname[6])
+        args.__setattr__("dataset_name", datasetname[8])
         args.__setattr__("root_dataset_path", datasetpath[6])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
-        args.__setattr__("num_epoch", 10)
-        args.__setattr__("lr", 1e-5)
+        args.__setattr__("num_epoch", 100)
+        args.__setattr__("lr", 1e-3)
         args.__setattr__("min_lr", 1e-6)
 
         args.__setattr__("resume_path",
