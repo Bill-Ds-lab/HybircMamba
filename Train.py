@@ -470,11 +470,11 @@ def load_checkpoint_safely(
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 55:
+    elif epoch < 20:
         lr = base_lr
-    elif epoch < 60:
+    elif epoch < 30:
         lr = base_lr * 0.1
-    elif epoch < 65:
+    elif epoch < 40:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
@@ -799,6 +799,7 @@ if __name__ == "__main__":
         "VIT_B",
     ]
     datasetname = [
+        "belgium_ar_new_1","belgium_ar_new_3","belgium_ar_new_2",
         "German",
         "Belgium",
         "German_51k",
@@ -817,20 +818,23 @@ if __name__ == "__main__":
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET",
         "/kaggle/input/datasets/thanhsangtrn/german-trafic-sign/dataset_reOrgan",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/DCID/DCID-512-35",
-        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3"
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_1",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3",
+        "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_2"
     ]
 
     args = get_args()
-    for i in range (2,3):
-        args.__setattr__("model_name", modelname[i])
+    i=2
+    for j in range(5,10):
+        args.__setattr__("model_name", modelname[j])
 
-        args.__setattr__("dataset_name", datasetname[9])
-        args.__setattr__("root_dataset_path", datasetpath[6])
+        args.__setattr__("dataset_name", datasetname[i])
+        args.__setattr__("root_dataset_path", datasetpath[6+i])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
-        args.__setattr__("num_epoch", 70)
+        args.__setattr__("num_epoch", 40)
         args.__setattr__("lr", 1e-3)
-        args.__setattr__("min_lr", 1e-6)
+        args.__setattr__("min_lr", 5e-6)
 
         args.__setattr__("resume_path",
                          os.path.join(

@@ -108,21 +108,21 @@ TRANSFORM_DICT = {
     "brightness": lambda img: transform_brightness_extreme(img),
     "occlusion": lambda img: transform_occlusion_extreme(img),
 
-    "dim_g01": lambda img: transform_gamma(img, 1.5),
-    "exp_g75": lambda img: transform_gamma(img, 5.5),
+    "dim_g01": lambda img: transform_gamma(img, 0.1),
+    "exp_g75": lambda img: transform_gamma(img, 7.5),
 
     "rain_w05": lambda img: transform_rain_heavy(img, w_size=0.5),
-    "rain_w2": lambda img: transform_rain_heavy(img, w_size=1.5),
-    "rain_w4": lambda img: transform_rain_heavy(img, w_size=2),
-    "rain_w6": lambda img: transform_rain_heavy(img, w_size=3),
+    "rain_w2": lambda img: transform_rain_heavy(img, w_size=2),
+    "rain_w4": lambda img: transform_rain_heavy(img, w_size=4),
+    "rain_w6": lambda img: transform_rain_heavy(img, w_size=6),
 
-    "noise_m-200": lambda img: transform_noise(img, mean=-160, std=35),
-    "noise_m0": lambda img: transform_noise(img, mean=0, std=70),
-    "noise_m200": lambda img: transform_noise(img, mean=160, std=35),
+    "noise_m-200": lambda img: transform_noise(img, mean=-200, std=65),
+    "noise_m0": lambda img: transform_noise(img, mean=0, std=100),
+    "noise_m200": lambda img: transform_noise(img, mean=200, std=65),
 
-    "extreme_dark_0.05": lambda img: transform_extreme_dark(img, factor=0.2),
+    "extreme_dark_0.05": lambda img: transform_extreme_dark(img, factor=0.05),
 
-    "extreme_dark_0.2": lambda img: transform_extreme_dark(img, factor=0.3),
+    "extreme_dark_0.2": lambda img: transform_extreme_dark(img, factor=0.2),
 
 }
 

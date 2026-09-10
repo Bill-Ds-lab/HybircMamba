@@ -1,0 +1,147 @@
+2026-09-09 23:54:25 [INFO] Dataset: belgium_ar_new_1 | Số nhãn (classes): 62 | Tổng số ảnh: 92235
+2026-09-09 23:54:25 [INFO] Dữ liệu đã chia -> Train (70%): 59952 | Val (15%): 16141 | Test (15%): 16142
+2026-09-09 23:54:25 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 23:54:27 [INFO]   Batch 0: 27 classes (first 5: [7, 12, 17, 18, 19])
+2026-09-09 23:54:27 [INFO]   Batch 1: 30 classes (first 5: [1, 7, 8, 12, 18])
+2026-09-09 23:54:27 [INFO]   Batch 2: 31 classes (first 5: [4, 7, 9, 13, 17])
+2026-09-09 23:54:27 [INFO]   Batch 3: 22 classes (first 5: [0, 1, 17, 18, 19])
+2026-09-09 23:54:27 [INFO]   Batch 4: 31 classes (first 5: [7, 12, 13, 15, 18])
+2026-09-09 23:54:27 [INFO] ✅ Shuffle tốt! Trung bình 28.2 classes/batch
+2026-09-09 23:54:27 [INFO] ============================================================
+2026-09-09 23:54:27 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-09 23:54:27 [INFO] Dataset: belgium_ar_new_1 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_1
+2026-09-09 23:54:27 [INFO] Device: cuda
+2026-09-09 23:54:27 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 23:54:27 [INFO] ============================================================
+2026-09-09 23:55:11 [INFO] Dataset: belgium_ar_new_1 | Số nhãn (classes): 62 | Tổng số ảnh: 92235
+2026-09-09 23:55:11 [INFO] Dữ liệu đã chia -> Train (70%): 59952 | Val (15%): 16141 | Test (15%): 16142
+2026-09-09 23:55:11 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-09 23:55:13 [INFO]   Batch 0: 30 classes (first 5: [7, 13, 17, 18, 19])
+2026-09-09 23:55:13 [INFO]   Batch 1: 29 classes (first 5: [1, 4, 7, 13, 15])
+2026-09-09 23:55:13 [INFO]   Batch 2: 34 classes (first 5: [4, 7, 13, 14, 17])
+2026-09-09 23:55:13 [INFO]   Batch 3: 30 classes (first 5: [3, 6, 7, 8, 15])
+2026-09-09 23:55:13 [INFO]   Batch 4: 27 classes (first 5: [1, 7, 9, 13, 14])
+2026-09-09 23:55:13 [INFO] ✅ Shuffle tốt! Trung bình 30.0 classes/batch
+2026-09-09 23:55:13 [INFO] ============================================================
+2026-09-09 23:55:13 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-09 23:55:13 [INFO] Dataset: belgium_ar_new_1 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_1
+2026-09-09 23:55:13 [INFO] Device: cuda
+2026-09-09 23:55:13 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-09 23:55:13 [INFO] ============================================================
+2026-09-09 23:55:34 [INFO] Epoch 000 | Train Loss: 4.5333 | Train Acc: 0.3044 | Val Loss: 1.6779 | Val Acc: 0.5315
+2026-09-09 23:55:34 [INFO] ✓ Saved best model: Val Acc=0.5315 at epoch 0
+2026-09-09 23:55:52 [INFO] Epoch 001 | Train Loss: 2.6695 | Train Acc: 0.6193 | Val Loss: 0.7493 | Val Acc: 0.7798
+2026-09-09 23:55:52 [INFO] ✓ Saved best model: Val Acc=0.7798 at epoch 1
+2026-09-09 23:56:10 [INFO] Epoch 002 | Train Loss: 1.7688 | Train Acc: 0.7607 | Val Loss: 0.4352 | Val Acc: 0.8657
+2026-09-09 23:56:10 [INFO] ✓ Saved best model: Val Acc=0.8657 at epoch 2
+2026-09-09 23:56:29 [INFO] Epoch 003 | Train Loss: 1.2620 | Train Acc: 0.8249 | Val Loss: 0.3190 | Val Acc: 0.9060
+2026-09-09 23:56:29 [INFO] ✓ Saved best model: Val Acc=0.9060 at epoch 3
+2026-09-09 23:56:47 [INFO] Epoch 004 | Train Loss: 0.9927 | Train Acc: 0.8580 | Val Loss: 0.2498 | Val Acc: 0.9254
+2026-09-09 23:56:47 [INFO] ✓ Saved best model: Val Acc=0.9254 at epoch 4
+2026-09-09 23:57:04 [INFO] Epoch 005 | Train Loss: 0.8304 | Train Acc: 0.8816 | Val Loss: 0.1910 | Val Acc: 0.9439
+2026-09-09 23:57:04 [INFO] ✓ Saved best model: Val Acc=0.9439 at epoch 5
+2026-09-09 23:57:23 [INFO] Epoch 006 | Train Loss: 0.7310 | Train Acc: 0.8954 | Val Loss: 0.1892 | Val Acc: 0.9459
+2026-09-09 23:57:23 [INFO] ✓ Saved best model: Val Acc=0.9459 at epoch 6
+2026-09-09 23:57:41 [INFO] Epoch 007 | Train Loss: 0.6577 | Train Acc: 0.9060 | Val Loss: 0.1593 | Val Acc: 0.9538
+2026-09-09 23:57:41 [INFO] ✓ Saved best model: Val Acc=0.9538 at epoch 7
+2026-09-09 23:58:00 [INFO] Epoch 008 | Train Loss: 0.6118 | Train Acc: 0.9125 | Val Loss: 0.1469 | Val Acc: 0.9561
+2026-09-09 23:58:00 [INFO] ✓ Saved best model: Val Acc=0.9561 at epoch 8
+2026-09-09 23:58:18 [INFO] Epoch 009 | Train Loss: 0.5743 | Train Acc: 0.9184 | Val Loss: 0.1306 | Val Acc: 0.9626
+2026-09-09 23:58:18 [INFO] ✓ Saved best model: Val Acc=0.9626 at epoch 9
+2026-09-09 23:58:36 [INFO] Epoch 010 | Train Loss: 0.5442 | Train Acc: 0.9232 | Val Loss: 0.1326 | Val Acc: 0.9624
+2026-09-09 23:58:54 [INFO] Epoch 011 | Train Loss: 0.5088 | Train Acc: 0.9276 | Val Loss: 0.1357 | Val Acc: 0.9614
+2026-09-09 23:59:12 [INFO] Epoch 012 | Train Loss: 0.4964 | Train Acc: 0.9287 | Val Loss: 0.1245 | Val Acc: 0.9645
+2026-09-09 23:59:12 [INFO] ✓ Saved best model: Val Acc=0.9645 at epoch 12
+2026-09-09 23:59:31 [INFO] Epoch 013 | Train Loss: 0.4720 | Train Acc: 0.9332 | Val Loss: 0.1150 | Val Acc: 0.9649
+2026-09-09 23:59:31 [INFO] ✓ Saved best model: Val Acc=0.9649 at epoch 13
+2026-09-09 23:59:48 [INFO] Epoch 014 | Train Loss: 0.4517 | Train Acc: 0.9354 | Val Loss: 0.1171 | Val Acc: 0.9665
+2026-09-09 23:59:48 [INFO] ✓ Saved best model: Val Acc=0.9665 at epoch 14
+2026-09-10 00:00:08 [INFO] Epoch 015 | Train Loss: 0.4472 | Train Acc: 0.9363 | Val Loss: 0.1088 | Val Acc: 0.9688
+2026-09-10 00:00:08 [INFO] ✓ Saved best model: Val Acc=0.9688 at epoch 15
+2026-09-10 00:00:26 [INFO] Epoch 016 | Train Loss: 0.4295 | Train Acc: 0.9365 | Val Loss: 0.1003 | Val Acc: 0.9700
+2026-09-10 00:00:26 [INFO] ✓ Saved best model: Val Acc=0.9700 at epoch 16
+2026-09-10 00:00:45 [INFO] Epoch 017 | Train Loss: 0.4140 | Train Acc: 0.9398 | Val Loss: 0.1010 | Val Acc: 0.9713
+2026-09-10 00:00:45 [INFO] ✓ Saved best model: Val Acc=0.9713 at epoch 17
+2026-09-10 00:01:03 [INFO] Epoch 018 | Train Loss: 0.4068 | Train Acc: 0.9413 | Val Loss: 0.0949 | Val Acc: 0.9721
+2026-09-10 00:01:03 [INFO] ✓ Saved best model: Val Acc=0.9721 at epoch 18
+2026-09-10 00:01:22 [INFO] Epoch 019 | Train Loss: 0.3944 | Train Acc: 0.9428 | Val Loss: 0.1033 | Val Acc: 0.9698
+2026-09-10 00:01:41 [INFO] Epoch 020 | Train Loss: 0.3345 | Train Acc: 0.9526 | Val Loss: 0.0755 | Val Acc: 0.9791
+2026-09-10 00:01:41 [INFO] ✓ Saved best model: Val Acc=0.9791 at epoch 20
+2026-09-10 00:01:59 [INFO] Epoch 021 | Train Loss: 0.3154 | Train Acc: 0.9572 | Val Loss: 0.0704 | Val Acc: 0.9791
+2026-09-10 00:02:18 [INFO] Epoch 022 | Train Loss: 0.3099 | Train Acc: 0.9580 | Val Loss: 0.0718 | Val Acc: 0.9789
+2026-09-10 00:02:36 [INFO] Epoch 023 | Train Loss: 0.3083 | Train Acc: 0.9579 | Val Loss: 0.0687 | Val Acc: 0.9804
+2026-09-10 00:02:36 [INFO] ✓ Saved best model: Val Acc=0.9804 at epoch 23
+2026-09-10 00:02:55 [INFO] Epoch 024 | Train Loss: 0.3055 | Train Acc: 0.9581 | Val Loss: 0.0660 | Val Acc: 0.9810
+2026-09-10 00:02:55 [INFO] ✓ Saved best model: Val Acc=0.9810 at epoch 24
+2026-09-10 00:03:14 [INFO] Epoch 025 | Train Loss: 0.3007 | Train Acc: 0.9591 | Val Loss: 0.0655 | Val Acc: 0.9814
+2026-09-10 00:03:14 [INFO] ✓ Saved best model: Val Acc=0.9814 at epoch 25
+2026-09-10 00:03:32 [INFO] Epoch 026 | Train Loss: 0.2946 | Train Acc: 0.9611 | Val Loss: 0.0647 | Val Acc: 0.9820
+2026-09-10 00:03:32 [INFO] ✓ Saved best model: Val Acc=0.9820 at epoch 26
+2026-09-10 00:03:51 [INFO] Epoch 027 | Train Loss: 0.2957 | Train Acc: 0.9605 | Val Loss: 0.0642 | Val Acc: 0.9819
+2026-09-10 00:04:09 [INFO] Epoch 028 | Train Loss: 0.2918 | Train Acc: 0.9611 | Val Loss: 0.0659 | Val Acc: 0.9804
+2026-09-10 00:04:29 [INFO] Epoch 029 | Train Loss: 0.2944 | Train Acc: 0.9611 | Val Loss: 0.0648 | Val Acc: 0.9813
+2026-09-10 00:04:47 [INFO] Epoch 030 | Train Loss: 0.2825 | Train Acc: 0.9630 | Val Loss: 0.0617 | Val Acc: 0.9814
+2026-09-10 00:05:06 [INFO] Epoch 031 | Train Loss: 0.2812 | Train Acc: 0.9626 | Val Loss: 0.0613 | Val Acc: 0.9818
+2026-09-10 00:05:24 [INFO] Epoch 032 | Train Loss: 0.2764 | Train Acc: 0.9627 | Val Loss: 0.0611 | Val Acc: 0.9817
+2026-09-10 00:05:42 [INFO] Epoch 033 | Train Loss: 0.2802 | Train Acc: 0.9627 | Val Loss: 0.0616 | Val Acc: 0.9817
+2026-09-10 00:06:01 [INFO] Epoch 034 | Train Loss: 0.2804 | Train Acc: 0.9625 | Val Loss: 0.0609 | Val Acc: 0.9822
+2026-09-10 00:06:01 [INFO] ✓ Saved best model: Val Acc=0.9822 at epoch 34
+2026-09-10 00:06:20 [INFO] Epoch 035 | Train Loss: 0.2807 | Train Acc: 0.9631 | Val Loss: 0.0611 | Val Acc: 0.9824
+2026-09-10 00:06:20 [INFO] ✓ Saved best model: Val Acc=0.9824 at epoch 35
+2026-09-10 00:06:38 [INFO] Epoch 036 | Train Loss: 0.2779 | Train Acc: 0.9635 | Val Loss: 0.0613 | Val Acc: 0.9822
+2026-09-10 00:06:57 [INFO] Epoch 037 | Train Loss: 0.2799 | Train Acc: 0.9625 | Val Loss: 0.0611 | Val Acc: 0.9818
+2026-09-10 00:07:16 [INFO] Epoch 038 | Train Loss: 0.2792 | Train Acc: 0.9631 | Val Loss: 0.0610 | Val Acc: 0.9827
+2026-09-10 00:07:16 [INFO] ✓ Saved best model: Val Acc=0.9827 at epoch 38
+2026-09-10 00:07:34 [INFO] Epoch 039 | Train Loss: 0.2768 | Train Acc: 0.9631 | Val Loss: 0.0608 | Val Acc: 0.9825
+2026-09-10 00:07:53 [INFO] Epoch 040 | Train Loss: 0.2745 | Train Acc: 0.9641 | Val Loss: 0.0607 | Val Acc: 0.9825
+2026-09-10 00:08:11 [INFO] Epoch 041 | Train Loss: 0.2786 | Train Acc: 0.9632 | Val Loss: 0.0604 | Val Acc: 0.9825
+2026-09-10 00:08:30 [INFO] Epoch 042 | Train Loss: 0.2789 | Train Acc: 0.9629 | Val Loss: 0.0605 | Val Acc: 0.9823
+2026-09-10 00:08:49 [INFO] Epoch 043 | Train Loss: 0.2760 | Train Acc: 0.9637 | Val Loss: 0.0604 | Val Acc: 0.9826
+2026-09-10 00:09:07 [INFO] Epoch 044 | Train Loss: 0.2764 | Train Acc: 0.9637 | Val Loss: 0.0605 | Val Acc: 0.9824
+2026-09-10 00:09:25 [INFO] Epoch 045 | Train Loss: 0.2783 | Train Acc: 0.9635 | Val Loss: 0.0611 | Val Acc: 0.9820
+2026-09-10 00:09:43 [INFO] Epoch 046 | Train Loss: 0.2804 | Train Acc: 0.9626 | Val Loss: 0.0609 | Val Acc: 0.9825
+2026-09-10 00:10:01 [INFO] Epoch 047 | Train Loss: 0.2780 | Train Acc: 0.9636 | Val Loss: 0.0610 | Val Acc: 0.9823
+2026-09-10 00:10:18 [INFO] Epoch 048 | Train Loss: 0.2760 | Train Acc: 0.9637 | Val Loss: 0.0609 | Val Acc: 0.9824
+2026-09-10 00:10:18 [INFO] ⏹ Early stopping tại epoch 48 (không cải thiện sau 10 epoch, best=0.9827)
+2026-09-10 00:10:18 [INFO] Evaluating Best Model on TEST Set...
+2026-09-10 00:10:18 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/LIGHT_HYBRIC_MAMBA/belgium_ar_new_1/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-10 00:10:22 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9811 | F1-Macro: 0.9747 | F1-Weighted: 0.9811
+2026-09-10 00:28:21 [INFO] Dataset: belgium_ar_new_1 | Số nhãn (classes): 62 | Tổng số ảnh: 92235
+2026-09-10 00:28:22 [INFO] Dữ liệu đã chia -> Train (70%): 59952 | Val (15%): 16141 | Test (15%): 16142
+2026-09-10 00:28:22 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-10 00:28:24 [INFO]   Batch 0: 28 classes (first 5: [1, 3, 7, 13, 17])
+2026-09-10 00:28:24 [INFO]   Batch 1: 32 classes (first 5: [1, 2, 5, 7, 9])
+2026-09-10 00:28:24 [INFO]   Batch 2: 28 classes (first 5: [7, 13, 14, 17, 18])
+2026-09-10 00:28:24 [INFO]   Batch 3: 28 classes (first 5: [2, 3, 7, 13, 14])
+2026-09-10 00:28:24 [INFO]   Batch 4: 37 classes (first 5: [1, 2, 6, 7, 8])
+2026-09-10 00:28:24 [INFO] ✅ Shuffle tốt! Trung bình 30.6 classes/batch
+2026-09-10 00:28:24 [INFO] ============================================================
+2026-09-10 00:28:24 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-10 00:28:24 [INFO] Dataset: belgium_ar_new_1 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_1
+2026-09-10 00:28:24 [INFO] Device: cuda
+2026-09-10 00:28:24 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-10 00:28:24 [INFO] ============================================================
+2026-09-10 00:28:24 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/LIGHT_HYBRIC_MAMBA/belgium_ar_new_1/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-10 00:28:44 [INFO] Epoch 039 | Train Loss: 0.2856 | Train Acc: 0.9621 | Val Loss: 0.0538 | Val Acc: 0.9853
+2026-09-10 00:28:44 [INFO] ✓ Saved best model: Val Acc=0.9853 at epoch 39
+2026-09-10 00:29:02 [INFO] Epoch 040 | Train Loss: 0.2848 | Train Acc: 0.9623 | Val Loss: 0.0533 | Val Acc: 0.9853
+2026-09-10 00:29:20 [INFO] Epoch 041 | Train Loss: 0.2851 | Train Acc: 0.9623 | Val Loss: 0.0534 | Val Acc: 0.9853
+2026-09-10 00:29:20 [INFO] ✓ Saved best model: Val Acc=0.9853 at epoch 41
+2026-09-10 00:29:38 [INFO] Epoch 042 | Train Loss: 0.2860 | Train Acc: 0.9621 | Val Loss: 0.0527 | Val Acc: 0.9854
+2026-09-10 00:29:38 [INFO] ✓ Saved best model: Val Acc=0.9854 at epoch 42
+2026-09-10 00:29:57 [INFO] Epoch 043 | Train Loss: 0.2851 | Train Acc: 0.9618 | Val Loss: 0.0531 | Val Acc: 0.9850
+2026-09-10 00:30:15 [INFO] Epoch 044 | Train Loss: 0.2843 | Train Acc: 0.9620 | Val Loss: 0.0535 | Val Acc: 0.9854
+2026-09-10 00:30:34 [INFO] Epoch 045 | Train Loss: 0.2839 | Train Acc: 0.9618 | Val Loss: 0.0529 | Val Acc: 0.9853
+2026-09-10 00:30:51 [INFO] Epoch 046 | Train Loss: 0.2858 | Train Acc: 0.9618 | Val Loss: 0.0530 | Val Acc: 0.9851
+2026-09-10 00:31:10 [INFO] Epoch 047 | Train Loss: 0.2827 | Train Acc: 0.9617 | Val Loss: 0.0534 | Val Acc: 0.9850
+2026-09-10 00:31:28 [INFO] Epoch 048 | Train Loss: 0.2885 | Train Acc: 0.9614 | Val Loss: 0.0529 | Val Acc: 0.9851
+2026-09-10 00:31:48 [INFO] Epoch 049 | Train Loss: 0.2843 | Train Acc: 0.9622 | Val Loss: 0.0534 | Val Acc: 0.9853
+2026-09-10 00:31:48 [INFO] Evaluating Best Model on TEST Set...
+2026-09-10 00:31:48 [INFO] 
+[RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/LIGHT_HYBRIC_MAMBA/belgium_ar_new_1/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-10 00:31:49 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9859 | F1-Macro: 0.9828 | F1-Weighted: 0.9859
