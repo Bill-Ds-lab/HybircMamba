@@ -310,3 +310,19 @@
 2026-09-10 08:28:59 [INFO] 
 [RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/MEDIUM_HYBRIC_MAMBA/belgium_ar_new_2/MEDIUM_HYBRIC_MAMBA_best.pth
 2026-09-10 08:29:28 [INFO] Epoch 067 | Train Loss: 0.3146 | Train Acc: 0.9494 | Val Loss: 0.0791 | Val Acc: 0.9750
+2026-09-11 02:43:44 [INFO] Dataset: belgium_ar_new_2 | Số nhãn (classes): 62 | Tổng số ảnh: 99330
+2026-09-11 02:43:44 [INFO] Dữ liệu đã chia -> Train (70%): 64564 | Val (15%): 17383 | Test (15%): 17383
+2026-09-11 02:43:44 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-11 02:43:44 [INFO]   Batch 0: 31 classes (first 5: [1, 4, 7, 13, 14])
+2026-09-11 02:43:44 [INFO]   Batch 1: 27 classes (first 5: [7, 8, 16, 17, 18])
+2026-09-11 02:43:44 [INFO]   Batch 2: 27 classes (first 5: [2, 7, 8, 9, 13])
+2026-09-11 02:43:44 [INFO]   Batch 3: 32 classes (first 5: [7, 10, 11, 13, 14])
+2026-09-11 02:43:44 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 7, 12, 13])
+2026-09-11 02:43:44 [INFO] ✅ Shuffle tốt! Trung bình 29.0 classes/batch
+2026-09-11 02:43:44 [INFO] ============================================================
+2026-09-11 02:43:44 [INFO] Starting training: MEDIUM_HYBRIC_MAMBA
+2026-09-11 02:43:44 [INFO] Dataset: belgium_ar_new_2 | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3
+2026-09-11 02:43:44 [INFO] Device: cuda
+2026-09-11 02:43:44 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-11 02:43:44 [INFO] ============================================================

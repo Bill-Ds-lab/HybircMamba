@@ -45,7 +45,7 @@ def get_args():
 
     parser.add_argument('--picture_size', default=32, type=int)
 
-    parser.add_argument('--early_stop_patience', default=10, type=int)
+    parser.add_argument('--early_stop_patience', default=30, type=int)
     parser.add_argument('--SEED', default=2223, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--num_epoch', default=130, type=int)
@@ -470,11 +470,11 @@ def load_checkpoint_safely(
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
         return base_lr * (epoch + 1) / 5
-    elif epoch < 20:
+    elif epoch < 25:
         lr = base_lr
-    elif epoch < 30:
+    elif epoch < 45:
         lr = base_lr * 0.1
-    elif epoch < 40:
+    elif epoch < 60:
         lr = base_lr * 0.01
     else:
         lr = base_lr * 0.001
@@ -825,16 +825,16 @@ if __name__ == "__main__":
 
     args = get_args()
     i=2
-    for j in range(5,10):
+    for j in range(0,3):
         args.__setattr__("model_name", modelname[j])
 
-        args.__setattr__("dataset_name", datasetname[i])
-        args.__setattr__("root_dataset_path", datasetpath[6+i])
+        args.__setattr__("dataset_name", datasetname[1])
+        args.__setattr__("root_dataset_path", datasetpath[7])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
-        args.__setattr__("num_epoch", 40)
+        args.__setattr__("num_epoch", 75)
         args.__setattr__("lr", 1e-3)
-        args.__setattr__("min_lr", 5e-6)
+        args.__setattr__("min_lr", 1e-6)
 
         args.__setattr__("resume_path",
                          os.path.join(
