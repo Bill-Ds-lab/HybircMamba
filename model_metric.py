@@ -18,11 +18,13 @@ from sklearn.metrics import (
 )
 from torch.utils.data import DataLoader
 
-from Dataloader.DATASET import TrafficSignDataset
-from models.MambaTSR.VSSBlock_utils import Super_MambaTRS
-from data_split_utils import get_or_create_split
+from Dataloader.loadDataset import TrafficSignDataset
+from Dataloader.data_split_utils import get_or_create_split
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
-from models.vmamba.Vmamba_ultils import Super_Mamba
+from models.mambaTRS.Vmamba_ultils import Super_Mamba
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 
 def get_args():
@@ -31,10 +33,18 @@ def get_args():
     parser.add_argument('--dataset_name', default="NEU-DET_surface-dec", type=str,
                          choices=["German", "German_CSV", "Belgium", "German_51k", "NEU-DET_surface-dec"])
     parser.add_argument('--csv_filename', default="Train.csv", type=str)
-    parser.add_argument('--root_dataset_path',
-                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/NEU-DET", type=str)
-    parser.add_argument('--save_path',
-                         default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ", type=str)
+
+    parser.add_argument(
+        '--root_dataset_path',
+        default=str(PROJECT_ROOT / "data" / "German_51k"),
+        type=str
+    )
+
+    parser.add_argument(
+        '--save_path',
+        default=str(PROJECT_ROOT / "Ressult" / "TFJ"),
+        type=str
+    )
     parser.add_argument('--output_dir', default="./benchmark_outputs", type=str)
 
     parser.add_argument('--picture_size', default=32, type=int)
@@ -118,9 +128,9 @@ def build_Model(name, num_classes=6, pretrained=False):
             use_aux=True,
         )
     elif name == "SUPER_MAMBA_DEPT_4":
-        return Super_MambaTRS(dims=3, depth=4, num_classes=num_classes)
+        return Super_Mamba(dims=3, depth=4, num_classes=num_classes)
     elif name == "SUPER_MAMBA_DEPT_3":
-        return Super_MambaTRS(dims=3, depth=3, num_classes=num_classes)
+        return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
     elif name in ["VGG16", "VGG-16"]:
         return timm.create_model("vgg16", pretrained=pretrained, num_classes=num_classes)
     elif name in ["RESNET18", "ResNet18"]:
@@ -162,11 +172,11 @@ def load_checkpoint_safely(model, checkpoint_path, device):
     missing_keys, unexpected_keys = model.load_state_dict(clean_state_dict, strict=False)
 
     if missing_keys:
-        print(f"  ⚠️ Thiếu {len(missing_keys)} keys (VD: {missing_keys[:3]})")
+        print(f"   Thiếu {len(missing_keys)} keys (VD: {missing_keys[:3]})")
     if unexpected_keys:
-        print(f"  ⚠️ Thừa {len(unexpected_keys)} keys (VD: {unexpected_keys[:3]})")
+        print(f"   Thừa {len(unexpected_keys)} keys (VD: {unexpected_keys[:3]})")
     if not missing_keys and not unexpected_keys:
-        print("  ✅ Checkpoint khớp 100%.")
+        print("   Checkpoint khớp 100%.")
 
     best_val_acc = checkpoint.get("best_val_acc", None) if isinstance(checkpoint, dict) else None
 
@@ -190,51 +200,10 @@ def get_transforms(img_size=32):
 # --------------------------------------------------------------------------- #
 # TEST LOADER
 # --------------------------------------------------------------------------- #
-"""
-def build_test_loader(args):
-    full_dataset = TrafficSignDataset(
-        root=args.root_dataset_path,
-        dataset_name=args.dataset_name,
-        csv_filename=args.csv_filename,
-        shuffle_samples=False,
-    )
-    num_classes = len(full_dataset.class_to_idx)
-    dataset_class = type(full_dataset)
 
-    split_path_exists = os.path.exists(
-        os.path.join(args.save_path, "_dataset_splits", f"{args.dataset_name}_split_seed{args.SEED}.json")
-    )
-    if not split_path_exists:
-        print("\n" + "!" * 90)
-        print("⚠️  CẢNH BÁO QUAN TRỌNG: Chưa có file split cố định cho dataset này.")
-        print("   Split sẽ được TẠO MỚI ngay bây giờ và lưu lại cho các lần sau.")
-        print("!" * 90 + "\n")
-
-    _, _, test_samples = get_or_create_split(
-        full_dataset, args.save_path, args.dataset_name, seed=args.SEED
-    )
-
-    transform_test = get_transforms(args.picture_size)
-    test_dataset = dataset_class(
-        root=args.root_dataset_path,
-        transform=transform_test,
-        samples=test_samples,
-        class_to_idx=full_dataset.class_to_idx,
-        shuffle_samples=False,
-    )
-
-    test_loader = DataLoader(
-        test_dataset, batch_size=args.batch_size, shuffle=False,
-        num_workers=4, pin_memory=True,
-    )
-
-    print(f"[DATA] Test set: {len(test_dataset)} ảnh | {num_classes} classes")
-    return test_loader, num_classes
-"""
 def build_eval_loaders(args):
     transform_test = get_transforms(args.picture_size)
 
-    # 1. Dataset toàn bộ (Full Dataset)
     full_dataset = TrafficSignDataset(
         root=args.root_dataset_path,
         dataset_name=args.dataset_name,
@@ -250,17 +219,16 @@ def build_eval_loaders(args):
         num_workers=4, pin_memory=True,
     )
 
-    # 2. Dataset cho tập Test riêng biệt
     split_path_exists = os.path.exists(
         os.path.join(args.save_path, "_dataset_splits", f"{args.dataset_name}_split_seed{args.SEED}.json")
     )
     if not split_path_exists:
         print("\n" + "!" * 90)
-        print("⚠️  CẢNH BÁO QUAN TRỌNG: Chưa có file split cố định cho dataset này.")
+        print(" Chưa có file split cố định cho dataset này.")
         print("    Split sẽ được TẠO MỚI ngay bây giờ và lưu lại cho các lần sau.")
         print("!" * 90 + "\n")
 
-    _, _, test_samples = get_or_create_split(
+    _, _, test_samples,_ = get_or_create_split(
         full_dataset, args.save_path, args.dataset_name, seed=args.SEED
     )
 
@@ -345,7 +313,7 @@ def count_flops(model, input_size=(1, 3, 224, 224), device=None):
 
     total_flops = fca.total()
 
-    print(f"✅ Total FLOPs: {total_flops / 1e6:.2f}M ({total_flops / 1e9:.4f}G)")
+    print(f" Total FLOPs: {total_flops / 1e6:.2f}M ({total_flops / 1e9:.4f}G)")
 
     return {
         "flops": total_flops,
@@ -610,11 +578,9 @@ def benchmark_one_model(model_name, args, full_loader, test_loader, num_classes,
 
     if ckpt_path is not None and not result["arch_mismatch"]:
         try:
-            # --- TÍNH ACCURACY TRÊN TOÀN DATASET ---
             full_acc_info = evaluate_accuracy(model, full_loader, device=device)
             result["full_accuracy"] = full_acc_info["accuracy"]
 
-            # --- TÍNH METRICS TRÊN TẬP TEST ---
             acc_info = evaluate_accuracy(model, test_loader, device=device)
             result["test_accuracy"] = acc_info["accuracy"]
             result["precision_macro"] = acc_info["precision_macro"]
@@ -755,7 +721,7 @@ def main():
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(csv_rows)
-            print(f"\n📄 Đã lưu kết quả CSV: {csv_path}")
+            print(f"\nĐã lưu kết quả CSV: {csv_path}")
 """
 
 
@@ -853,7 +819,7 @@ def main():
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(csv_rows)
-            print(f"\n📄 Đã lưu kết quả CSV: {csv_path}")
+            print(f"\n Đã lưu kết quả CSV: {csv_path}")
 
 if __name__ == "__main__":
     main()

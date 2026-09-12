@@ -1,9 +1,6 @@
 import argparse
-import csv
 import logging
-import os
 import random
-import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,16 +9,14 @@ import timm
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from PIL import Image
-from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from sklearn.metrics import confusion_matrix, f1_score
-from Dataloader.DATASET import TrafficSignDataset
+from Dataloader.loadDataset import TrafficSignDataset
 from models.CNN_Mamba_CNN_Mamba_Enhanced.HybricMamba import HybricMamba
-from models.vmamba.Vmamba_ultils import Super_Mamba
+from models.mambaTRS.Vmamba_ultils import Super_Mamba
+from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 # =================================================================SET Args =======================================
 
@@ -29,20 +24,22 @@ def get_args():
     parser = argparse.ArgumentParser(description="Traffic Sign Recognition Training with Mamba")
 
     parser.add_argument('--model_name', default="LIGHT_HYBRIC_MAMBA", type=str)
-    # Hỗ trợ: "German" (folder root/<class>), "German_CSV" (root/Train.csv), "Belgium" (root/Train/<class> + root/Test/<class>)
     parser.add_argument('--dataset_name', default="German", type=str,
                         choices=["German", "German_CSV", "Belgium"])
     parser.add_argument('--csv_filename', default="Train.csv", type=str,
-                        help="Chỉ dùng khi dataset_name=German_CSV")
+                        help=" dataset_name=German_CSV")
     parser.add_argument('--class_num', default=43, type=int)
-    parser.add_argument('--root_dataset_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
-                        type=str)
+    parser.add_argument(
+        '--root_dataset_path',
+        default=str(PROJECT_ROOT / "data" / "German_51k"),
+        type=str
+    )
 
-    parser.add_argument('--save_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ",
-                        type=str)
-
+    parser.add_argument(
+        '--save_path',
+        default=str(PROJECT_ROOT / "Ressult" / "TFJ"),
+        type=str
+    )
     parser.add_argument('--picture_size', default=32, type=int)
 
     parser.add_argument('--early_stop_patience', default=30, type=int)
@@ -55,16 +52,15 @@ def get_args():
     parser.add_argument('--weight_decay', default=0.02, type=float)
     parser.add_argument('--clip_grad', default=5.0, type=float)
     parser.add_argument('--label_smoothing', default=0.0, type=float)
-
     parser.add_argument('--resume', action='store_true', default=False)
     parser.add_argument('--resume_path',
-                        default="/home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/Super_Mamba_dim_3/German/Super_Mamba_dim_3_best.pth",
+                        default="/Ressult/TFJ/Super_Mamba_dim_3/German/Super_Mamba_dim_3_best.pth",
                         type=str)
 
     return parser.parse_args()
 
 
-# =================================================================BUILD MODEL ==============================================
+# =================================================================buil moo hinhf============================================== ==============================================
 
 def build_Model(name, num_classes, pretrained=True):
     if name == "LIGHT_HYBRIC_MAMBA":
@@ -108,8 +104,6 @@ def build_Model(name, num_classes, pretrained=True):
         return Super_Mamba(dims=3, depth=4, num_classes=num_classes)
     elif name == "SUPER_MAMBA_DEPT_3":
         return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
-
-    # 10 Mô hình Benchmark chuẩn
     elif name in ["VGG16", "VGG-16"]:
         return timm.create_model('vgg16', pretrained=pretrained, num_classes=num_classes)
     elif name in ["RESNET18", "ResNet18"]:
@@ -131,7 +125,7 @@ def build_Model(name, num_classes, pretrained=True):
         raise ValueError(f"Tên mô hình '{name}' không tồn tại.")
 
 
-# ================================== TRANSFORMS =================================================================
+# =============================================== tăngcường==================================================================================================
 
 def get_transforms(img_size=32):
     transform_train = transforms.Compose([
@@ -153,7 +147,7 @@ def get_transforms(img_size=32):
     return transform_train, transform_test
 
 
-# ======================================== SET SEED =====================================
+# =========================================================================== SET SEED ====================================================================
 
 def set_seed(seed=42):
     random.seed(seed)
@@ -164,7 +158,7 @@ def set_seed(seed=42):
     torch.backends.cudnn.benchmark = False
 
 
-# ================================================== SET LOG ================================================
+# ============================================================================================= SET LOG ================================================
 
 def setup_logging(folder_path):
     os.makedirs(folder_path, exist_ok=True)
@@ -191,20 +185,25 @@ def setup_logging(folder_path):
     return logger
 
 
-# =================================== DATASET CLASS (DUY NHẤT) =================================================
-
-def natural_sort_key(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', str(s))]
 
 
-IMG_EXTS = ('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.ppm')
+# ======================================================================== tải dữ liệu========================================================================
+import os
+import json
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
 
-
-
-# =============================================================== DATA LOADER FACTORY ======================================================
-
-def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32, seed=42, logger=None):
-
+def dataloader_prepare(
+    full_dataset,
+    dataset_name,
+    root,
+    batchsize,
+    img_size=32,
+    seed=42,
+    save_path="./splits",
+    force_recreate=False,
+    logger=None
+):
     transform_train, transform_test = get_transforms(img_size)
     dataset_class = type(full_dataset)
 
@@ -214,24 +213,82 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     if logger:
         logger.info(log_msg)
 
-    # 2. Split dataset theo Stratified Split
-    indices = list(range(len(full_dataset)))
-    labels = [full_dataset.class_to_idx[full_dataset.samples[i][1]] for i in indices]
+    os.makedirs(save_path, exist_ok=True)
+    split_path = os.path.join(save_path, f"{dataset_name}_split_seed{seed}.json")
 
-    train_idx, temp_idx = train_test_split(
-        indices, test_size=0.35, random_state=seed, shuffle=True, stratify=labels
-    )
-    temp_labels = [labels[i] for i in temp_idx]
+    if os.path.exists(split_path) and not force_recreate:
+        msg = f"[SPLIT] Dùng lại split cố định đã lưu: {split_path}"
+        print(msg)
+        if logger:
+            logger.info(msg)
 
-    val_idx, test_idx = train_test_split(
-        temp_idx, test_size=0.50, random_state=seed, shuffle=True, stratify=temp_labels
-    )
+        with open(split_path, "r", encoding="utf-8") as f:
+            split_info = json.load(f)
 
-    train_samples = [full_dataset.samples[i] for i in train_idx]
-    val_samples = [full_dataset.samples[i] for i in val_idx]
-    test_samples = [full_dataset.samples[i] for i in test_idx]
+        path_to_sample = {p: (p, c) for p, c in full_dataset.samples}
 
-    # 3. Khởi tạo Dataset thành phần (chỉ copy samples có sẵn, không quét lại ổ đĩa)
+        def _resolve(path_list, part_name):
+            resolved, missing = [], 0
+            for p in path_list:
+                if p in path_to_sample:
+                    resolved.append(path_to_sample[p])
+                else:
+                    missing += 1
+            if missing > 0:
+                warn_msg = f"[WARNING] {missing} ảnh trong '{part_name}' đã lưu không còn tồn tại"
+                print(warn_msg)
+                if logger:
+                    logger.warning(warn_msg)
+            return resolved
+
+        train_samples = _resolve(split_info["train_paths"], "train")
+        val_samples = _resolve(split_info["val_paths"], "val")
+        test_samples = _resolve(split_info["test_paths"], "test")
+
+    else:
+        msg = f"[SPLIT] Chưa có file split cố định, đang tạo mới tại: {split_path}"
+        print(msg)
+        if logger:
+            logger.info(msg)
+
+        indices = list(range(len(full_dataset)))
+        labels = [full_dataset.class_to_idx[full_dataset.samples[i][1]] for i in indices]
+
+        train_idx, temp_idx = train_test_split(
+            indices, test_size=0.35, random_state=seed, shuffle=True, stratify=labels
+        )
+        temp_labels = [labels[i] for i in temp_idx]
+
+        val_idx, test_idx = train_test_split(
+            temp_idx, test_size=0.50, random_state=seed, shuffle=True, stratify=temp_labels
+        )
+
+        train_samples = [full_dataset.samples[i] for i in train_idx]
+        val_samples = [full_dataset.samples[i] for i in val_idx]
+        test_samples = [full_dataset.samples[i] for i in test_idx]
+
+        train_paths = set(s[0] for s in train_samples)
+        val_paths = set(s[0] for s in val_samples)
+        test_paths = set(s[0] for s in test_samples)
+
+        overlap_train_val = train_paths & val_paths
+        overlap_train_test = train_paths & test_paths
+        overlap_val_test = val_paths & test_paths
+
+        assert len(overlap_train_val) == 0, f"Lỗi: {len(overlap_train_val)} ảnh trùng giữa train/val!"
+        assert len(overlap_train_test) == 0, f"Lỗi: {len(overlap_train_test)} ảnh trùng giữa train/test!"
+        assert len(overlap_val_test) == 0, f"Lỗi: {len(overlap_val_test)} ảnh trùng giữa val/test!"
+
+        split_info = {
+            "seed": seed,
+            "dataset_name": dataset_name,
+            "train_paths": [s[0] for s in train_samples],
+            "val_paths": [s[0] for s in val_samples],
+            "test_paths": [s[0] for s in test_samples],
+        }
+        with open(split_path, "w", encoding="utf-8") as f:
+            json.dump(split_info, f, indent=4)
+
     train_dataset = dataset_class(
         root=root, transform=transform_train, samples=train_samples,
         class_to_idx=full_dataset.class_to_idx, shuffle_samples=True
@@ -245,12 +302,11 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
         class_to_idx=full_dataset.class_to_idx, shuffle_samples=False
     )
 
-    # 4. Tạo DataLoader
     train_loader = DataLoader(train_dataset, batch_size=batchsize, shuffle=True, num_workers=6, pin_memory=True)
     val_loader = DataLoader(val_dataset, batch_size=batchsize, shuffle=False, num_workers=6, pin_memory=True)
     test_loader = DataLoader(test_dataset, batch_size=batchsize, shuffle=False, num_workers=6, pin_memory=True)
 
-    log_msg = f"Dữ liệu đã chia -> Train (70%): {len(train_dataset)} | Val (15%): {len(val_dataset)} | Test (15%): {len(test_dataset)}"
+    log_msg = f"Dữ liệu đã chia -> Train: {len(train_dataset)} | Val: {len(val_dataset)} | Test: {len(test_dataset)}"
     print(log_msg)
     if logger:
         logger.info(log_msg)
@@ -258,7 +314,6 @@ def dataloader_prepare(full_dataset, dataset_name, root, batchsize, img_size=32,
     check_batch_distribution(train_loader, num_batches=5, logger=logger)
 
     return train_loader, val_loader, test_loader, num_classes
-
 
 def check_batch_distribution(dataloader, num_batches=5, logger=None):
     log_msg = "\n🔍 Kiểm tra phân bố class trong batch:"
@@ -279,18 +334,18 @@ def check_batch_distribution(dataloader, num_batches=5, logger=None):
 
     avg_classes = np.mean(class_counts) if class_counts else 0
     if avg_classes < 10:
-        log_msg = f"⚠️ WARNING: Trung bình {avg_classes:.1f} classes/batch - Dữ liệu chưa được trộn đều!"
+        log_msg = f" Trộn sấu: Trung bình {avg_classes:.1f} classes/batch - Dữ liệu chưa được trộn đều!"
         print(log_msg)
         if logger:
             logger.warning(log_msg)
     else:
-        log_msg = f"✅ Shuffle tốt! Trung bình {avg_classes:.1f} classes/batch"
+        log_msg = (f" Trộn tốt! Trung bình {avg_classes:.1f} classes/batch")
         print(log_msg)
         if logger:
             logger.info(log_msg)
 
 
-# =========================================================== LOAD CHECKPOINT ========================================================================
+# ========================= LOAD CHECKPOINT ========================================================================
 """
 def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimizer=None, scaler=None):
     log_msg = f"\n[RESUME] Đang nạp checkpoint từ: {checkpoint_path}"
@@ -321,13 +376,13 @@ def load_checkpoint_safely(model, checkpoint_path, device, logger=None, optimize
     if len(missing_keys) > 0 and logger:
         logger.warning(f"⚠️ Thiếu {len(missing_keys)} keys trong weights!")
     if len(unexpected_keys) > 0 and logger:
-        logger.warning(f"⚠️ Thừa {len(unexpected_keys)} keys không khớp mô hình!")
+        logger.warning(f" Thừa {len(unexpected_keys)} keys không khớp mô hình!")
 
     if optimizer is not None and isinstance(checkpoint, dict) and 'optimizer_state_dict' in checkpoint:
         try:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         except Exception as e:
-            if logger: logger.warning(f"⚠️ Không thể khôi phục optimizer state: {e}")
+            if logger: logger.warning(f" Không thể khôi phục optimizer state: {e}")
 
     if scaler is not None and isinstance(checkpoint, dict) and 'scaler_state_dict' in checkpoint:
         try:
@@ -354,18 +409,12 @@ def load_checkpoint_safely(
     if logger:
         logger.info(log_msg)
 
-    # =========================================================
-    # LOAD CHECKPOINT TRÊN CPU
-    # =========================================================
     checkpoint = torch.load(
         checkpoint_path,
         map_location="cpu",
         weights_only=False
     )
 
-    # =========================================================
-    # LẤY MODEL STATE
-    # =========================================================
     state_dict = None
 
     if isinstance(checkpoint, dict):
@@ -384,18 +433,12 @@ def load_checkpoint_safely(
     else:
         state_dict = checkpoint
 
-    # =========================================================
-    # REMOVE "module."
-    # =========================================================
     clean_state_dict = {}
 
     for k, v in state_dict.items():
         name = k.replace("module.", "") if k.startswith("module.") else k
         clean_state_dict[name] = v
 
-    # =========================================================
-    # LOAD MODEL WEIGHT
-    # =========================================================
     missing_keys, unexpected_keys = model.load_state_dict(
         clean_state_dict,
         strict=False
@@ -403,17 +446,14 @@ def load_checkpoint_safely(
 
     if len(missing_keys) > 0 and logger:
         logger.warning(
-            f"⚠️ Thiếu {len(missing_keys)} keys trong weights!"
+            f"Thiếu {len(missing_keys)} keys trong weights!"
         )
 
     if len(unexpected_keys) > 0 and logger:
         logger.warning(
-            f"⚠️ Thừa {len(unexpected_keys)} keys không khớp mô hình!"
+            f"Thừa {len(unexpected_keys)} keys không khớp mô hình!"
         )
 
-    # =========================================================
-    # CHỈ LOAD OPTIMIZER KHI RESUME TRAINING
-    # =========================================================
     if (
         optimizer is not None
         and isinstance(checkpoint, dict)
@@ -429,9 +469,6 @@ def load_checkpoint_safely(
                     f"⚠️ Không thể khôi phục optimizer state: {e}"
                 )
 
-    # =========================================================
-    # LOAD SCALER KHI RESUME TRAINING
-    # =========================================================
     if (
         scaler is not None
         and isinstance(checkpoint, dict)
@@ -444,7 +481,7 @@ def load_checkpoint_safely(
         except Exception as e:
             if logger:
                 logger.warning(
-                    f"⚠️ Không thể khôi phục scaler state: {e}"
+                    f" Không thể khôi phục scaler state: {e}"
                 )
 
     start_epoch = (
@@ -465,7 +502,7 @@ def load_checkpoint_safely(
 
     return model, start_epoch, best_val_acc
 
-# ================================================================== LEARNING RATE SCHEDULE =========================================================
+# ==================================== LEARNING RATE SCHEDULE =========================================================
 
 def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
     if epoch < 5:
@@ -481,7 +518,7 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6):
 
     return max(lr, min_lr)
 
-import math
+
 """
 def get_lr(epoch, base_lr=1e-4, min_lr=1e-6, total_epochs=50):
     warmup_epochs = 5
@@ -502,7 +539,6 @@ def get_lr(epoch, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5, total_epochs=100):
     cos_factor = 0.5 * (1 + math.cos(math.pi * progress))
     return min_lr + (base_lr - min_lr) * cos_factor
     """
-import math
 """def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6, warmup_epochs=5):
 
     if epoch < warmup_epochs:
@@ -523,7 +559,6 @@ import math
     lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(cos_inner))
     return max(lr, min_lr)
     """
-import math
 """
 def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6,
            warmup_epochs=5, T0=20, decay_factor=0.6):
@@ -542,7 +577,6 @@ def get_lr(epoch, total_epochs=130, base_lr=1e-3, min_lr=1e-6,
     lr = min_lr + 0.5 * (peak_lr - min_lr) * (1 + math.cos(cos_inner))
     return max(lr, min_lr)
     """
-import math
 """
 def get_lr(
     epoch,
@@ -594,7 +628,6 @@ def get_lr(
     lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
     return max(lr, min_lr)
     """
-import math
 """
 def get_lr(
     epoch,
@@ -609,7 +642,7 @@ def get_lr(
     lr = min_lr + 0.5 * (base_lr - min_lr) * (1 + math.cos(math.pi * progress))
     return max(lr, min_lr)
     """
-# ======================================================================== TRAIN AND VAL ===============================================
+# ================================================ TRAIN AND VAL ===============================================
 
 def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logger):
     set_seed(args.SEED)
@@ -633,7 +666,6 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
 
     start_epoch = 0
     best_val_acc = 0.0
-    #base_lr = args.finetune_lr if args.resume and os.path.exists(args.resume_path) else args.lr
 
     base_lr = args.lr
     optimizer = torch.optim.AdamW(model.parameters(), lr=base_lr, weight_decay=args.weight_decay)
@@ -730,7 +762,7 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
             patience_counter = 0
             checkpoint_state['best_val_acc'] = best_val_acc
             torch.save(checkpoint_state, best_checkpoint_path)
-            logger.info(f"✓ Saved best model: Val Acc={best_val_acc:.4f} at epoch {epoch}")
+            logger.info(f"Saved best model: Val Acc={best_val_acc:.4f} at epoch {epoch}")
         else:
             patience_counter += 1
             if patience_counter >= early_stop_patience:
@@ -767,7 +799,7 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
     f1_macro = f1_score(true_labels, predicted_labels, average='macro')
     f1_weighted = f1_score(true_labels, predicted_labels, average='weighted')
 
-    logger.info(f"🎯 [TEST RESULT] Test Acc: {test_acc:.4f} | F1-Macro: {f1_macro:.4f} | F1-Weighted: {f1_weighted:.4f}")
+    logger.info(f"[TEST RESULT] Test Acc: {test_acc:.4f} | F1-Macro: {f1_macro:.4f} | F1-Weighted: {f1_weighted:.4f}")
 
     # Confusion Matrix
     conf_matrix = confusion_matrix(true_labels, predicted_labels)
@@ -780,7 +812,7 @@ def train_and_evaluate(args, model, train_loader, val_loader, test_loader, logge
     plt.close()
 
 
-# ======================================================================== MAIN =================================================
+# =========================================================== MAIN =================================================
 """       """
 
 if __name__ == "__main__":
@@ -799,10 +831,13 @@ if __name__ == "__main__":
         "VIT_B",
     ]
     datasetname = [
-        "belgium_ar_new_1","belgium_ar_new_3","belgium_ar_new_2",
+
+        "German_51k",
+        "belgium_ar_new_1",
+        "belgium_ar_new_3",
+        "belgium_ar_new_2",
         "German",
         "Belgium",
-        "German_51k",
         "NEU-DET_surface-dec",
         "German",
         "DCID",
@@ -812,6 +847,7 @@ if __name__ == "__main__":
         "Belgium_ar_new_3",
     ]
     datasetpath=[
+        "data/German_51k/German_51k"
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/dataset_reOrgan",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS",
         "/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/German_51k",
@@ -824,12 +860,12 @@ if __name__ == "__main__":
     ]
 
     args = get_args()
-    i=2
-    for j in range(0,3):
+    args.__setattr__("save_path", "Ressult/TFJ")
+    for j in range(0,12):
         args.__setattr__("model_name", modelname[j])
 
-        args.__setattr__("dataset_name", datasetname[1])
-        args.__setattr__("root_dataset_path", datasetpath[7])
+        args.__setattr__("dataset_name", datasetname[0])
+        args.__setattr__("root_dataset_path", PROJECT_ROOT / "data" /"German_51k"/ datasetname[0])
         args.__setattr__("batch_size", 64)
         args.__setattr__("img_size", 32)
         args.__setattr__("num_epoch", 75)

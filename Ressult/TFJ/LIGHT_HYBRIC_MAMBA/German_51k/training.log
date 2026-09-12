@@ -152,3 +152,39 @@
 [RESUME] Đang nạp checkpoint từ: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/Ressult/TFJ/LIGHT_HYBRIC_MAMBA/German_51k/LIGHT_HYBRIC_MAMBA_best.pth
 2026-08-25 00:34:03 [INFO] 🎯 [TEST RESULT] Test Acc: 0.9942 | F1-Macro: 0.9955 | F1-Weighted: 0.9942
 
+2026-09-12 16:29:03 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-12 16:29:03 [INFO] [SPLIT] Chưa có file split cố định, đang tạo mới tại: ./splits/German_51k_split_seed2223.json
+2026-09-12 16:29:03 [INFO] Dữ liệu đã chia -> Train: 33695 | Val: 9072 | Test: 9072
+2026-09-12 16:29:03 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-12 16:29:06 [INFO]   Batch 0: 25 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-12 16:29:06 [INFO]   Batch 1: 26 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-12 16:29:06 [INFO]   Batch 2: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-12 16:29:06 [INFO]   Batch 3: 26 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-12 16:29:06 [INFO]   Batch 4: 25 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-12 16:29:06 [INFO]  Trộn tốt! Trung bình 26.0 classes/batch
+2026-09-12 16:29:06 [INFO] ============================================================
+2026-09-12 16:29:06 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-12 16:29:06 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/data/German_51k/German_51k
+2026-09-12 16:29:06 [INFO] Device: cuda
+2026-09-12 16:29:06 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-12 16:29:06 [INFO] ============================================================
+2026-09-12 16:29:06 [INFO] 
+[RESUME] Đang nạp checkpoint từ: Ressult/TFJ/LIGHT_HYBRIC_MAMBA/German_51k/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-12 16:32:23 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-12 16:32:23 [INFO] [SPLIT] Dùng lại split cố định đã lưu: ./splits/German_51k_split_seed2223.json
+2026-09-12 16:32:23 [INFO] Dữ liệu đã chia -> Train: 33695 | Val: 9072 | Test: 9072
+2026-09-12 16:32:23 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-12 16:32:25 [INFO]   Batch 0: 23 classes (first 5: [1, 2, 5, 7, 8])
+2026-09-12 16:32:25 [INFO]   Batch 1: 28 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-12 16:32:25 [INFO]   Batch 2: 30 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-12 16:32:25 [INFO]   Batch 3: 30 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-12 16:32:25 [INFO]   Batch 4: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-12 16:32:25 [INFO]  Trộn tốt! Trung bình 27.8 classes/batch
+2026-09-12 16:32:25 [INFO] ============================================================
+2026-09-12 16:32:25 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-12 16:32:25 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/data/German_51k/German_51k
+2026-09-12 16:32:25 [INFO] Device: cuda
+2026-09-12 16:32:25 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-12 16:32:25 [INFO] ============================================================

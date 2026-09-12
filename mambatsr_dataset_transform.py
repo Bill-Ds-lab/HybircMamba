@@ -1,21 +1,13 @@
-"""
-MambaTSR Single-Transformation Dataset Generator (Extreme Distortion Edition)
-----------------------------------------------------------------------------------
-Kịch bản tạo Dataset biến đổi đơn lẻ với cường độ nhiễu / tàn phá thị giác cực mạnh:
-- Brightness / Contrast: Mở rộng biên độ gây cháy sáng hoặc làm mờ xám đục.
-- Occlusion: Che phủ diện rộng (40% - 65% kích thước chiều ảnh).
-- Rain: Tăng mật độ hạt mưa gấp 4 lần và tăng độ đục (beta = 0.85).
-- Noise m0: Tăng độ lệch chuẩn std từ 25 lên 85.
-- Giữ nguyên: noise_m-120, noise_m120 và dim_g02 theo yêu cầu.
-"""
 
-import os
 import argparse
 import random
 import numpy as np
 import cv2
 from pathlib import Path
 from tqdm import tqdm
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 
 def resize_image(img, target_size=(32, 32)):
@@ -65,7 +57,7 @@ def transform_rain_heavy(img, w_size=3):
 
     noise = np.random.uniform(0, 256, (h, w))
     v = 12000 * 0.01
-    noise[noise < (256 - v)] = 0  # Giữ lại khoảng ~7.8% hạt nhiễu lớn nhất
+    noise[noise < (256 - v)] = 0  # Giữ lại hạt nhiễu lớn nhất
 
     k_sharpen = np.array([[0, 0.2, 0],
                           [0.2, 10, 0.2],
@@ -137,7 +129,7 @@ def process_dataset(input_dir, output_dir, mode="all_types", target_type=None):
         if not split_dir.exists():
             continue
 
-        print(f"\n================ Xử lý tập: {split} ================")
+        print(f"\n============================================================= Xử lý tập: {split} =========================================")
         class_dirs = [d for d in split_dir.iterdir() if d.is_dir()]
 
         for class_dir in tqdm(class_dirs, desc=f"Tiến trình {split}"):
@@ -178,16 +170,17 @@ def process_dataset(input_dir, output_dir, mode="all_types", target_type=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Tạo Dataset với các phép biến đổi cường độ cực mạnh")
+
     parser.add_argument(
         '--input_dir',
         type=str,
-        default='/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_TFS',
+        default=str(PROJECT_ROOT / "data" / "German_51k"/"German_51k"),
         help='Thư mục dataset gốc'
     )
     parser.add_argument(
         '--output_dir',
         type=str,
-        default='/home/biu-linux/DeepLearning_Projects/DoAnNganh/data/Belgium_ar_3',
+        default=str(PROJECT_ROOT / "data" / "German_51k"/"German_51k_new"),
         help='Thư mục lưu dataset mới'
     )
     parser.add_argument('--mode', type=str, default='all_types', choices=['all_types', 'random_type', 'single_type'])

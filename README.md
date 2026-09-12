@@ -98,45 +98,113 @@ Recommended environment:
 - CUDA compiler (`nvcc`), `ninja` and a C++ compiler.
 
 The repository does not currently provide a root-level `requirements.txt`. The selective-scan package lists these main dependencies:
-
-- `torch`
-- `torchvision`
-- `torchaudio`
+- `torch==2.13.0`
+- `torchvision==0.28.0`
+- `torchaudio==2.11.0`
+- `triton==3.7.1`
+- `ninja==1.13.2`
+- `einops==0.8.2`
+- `packaging==26.3`
 - `timm==0.4.12`
-- `einops`
-- `fvcore`
-- `ninja`
-- `packaging`
-- `pytest`
-- `seaborn`
-- `yacs`
-- `termcolor`
-- `submitit`
-- `tensorboardX`
-- `chardet`
+- `fvcore==0.1.5.post20221221`
+- `pytest==9.1.1`
+- `chardet==7.6.0`
+- `yacs==0.1.8`
+- `termcolor==3.3.0`
+- `submitit==1.5.4`
+- `tensorboardX==2.6.5`
+- `tensorboard`
+- `seaborn==0.13.2`
+- `matplotlib==3.10.9`
+- `numpy==2.2.6`
+- `pandas==2.3.3`
+- `scipy==1.15.3`
+- `scikit-learn==1.7.2`
+- `pillow==12.3.0`
+- `opencv-python==5.0.0.93`
+- `tqdm==4.70.0`
+- `thop==0.1.1-2209072238`
+- `PyYAML==6.0.3`
+
 
 ## 4. Installation
-step 1: Clone the HybricMamba repository:
+
+Step 1: Clone the HybricMamba repository
+
 ```bash
 git clone https://github.com/Bill-Ds-lab/HybircMamba.git
 cd HybricMamba
 
 ```
-step 2: Set up environment
+
+Step 2: Create the Conda environment
+The project uses Python 3.10 and is recommended to run in a Conda environment.
+If `environment.yml` is available, recreate the tested environment directly:
 
 ```bash
-conda create -n HybricMamba
+conda env create -f environment.yml
 conda activate HybricMamba
-
-pip install -r requirements.txt
-cd kernels/selective_scan && pip install .
 
 ```
 
-Verify the extension import:
+Alternatively, create a new environment manually:
+
+Step 1
+
+```bash
+
+conda create -n HybricMamba python=3.10.20 pip -y
+conda activate HybricMamba
+conda install -c nvidia cuda-toolkit=13.0
+
+
+```
+
+Step 2: Install Python dependencies
+Install the main Python dependencies:
+
+```bash
+pip install -r requirements.txt
+cd kernels/selective_scan
+pip install --no-build-isolation .
+
+
+```
+
+
+
+
+Check PyTorch and CUDA:
+
+```bash
+python -c "import torch; print('PyTorch:', torch.__version__); print('CUDA:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available())"
+
+```
+
+Verify the selective-scan extension:
 
 ```bash
 python -c "import selective_scan_cuda_core; print('selective_scan_cuda_core: OK')"
+
 ```
+
+A successful installation should report that PyTorch can access CUDA and that the selective-scan CUDA extension can be imported.
+
+Step 6: Run the project
+After the environment has been installed and the dataset has been prepared, the main training pipeline can be started with:
+
+```bash
+python Train.py
+
+```
+
+For model benchmarking:
+
+```bash
+python model_metric.py
+
+```
+
+The exact model, dataset, and training parameters are configured in the corresponding scripts.
 
 If compilation fails, check that `nvcc`, `CUDA_HOME`, PyTorch CUDA, and the GPU compute capability are compatible. The Mamba layers in this project are not intended to be a CPU-only training path.
