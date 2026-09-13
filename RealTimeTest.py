@@ -55,7 +55,7 @@ GTSRB_CLASSES = {
     42: "End no passing by heavy vehicles"
 }
 
-"""
+
 def build_light_hybric_mamba(num_classes=43):
     return HybricMamba(
         dims=(3, 16, 32, 56, 96),
@@ -67,10 +67,11 @@ def build_light_hybric_mamba(num_classes=43):
         conv_frac=0.3,
         use_aux=True,
     )
+
 """
 def build_light_hybric_mamba(num_classes=43):
     return Super_Mamba(dims=3, depth=3, num_classes=num_classes)
-
+"""
 def load_checkpoint(model, checkpoint_path, device):
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Không tìm thấy file checkpoint tại: {checkpoint_path}")
@@ -101,7 +102,7 @@ def main():
     parser.add_argument(
         '--weights',
         type=str,
-        default="Ressult/TFJ/SUPER_MAMBA_DEPT_3/German/SUPER_MAMBA_DEPT_3_best.pth",
+        default="Ressult/TFJ/LIGHT_HYBRIC_MAMBA/German/LIGHT_HYBRIC_MAMBA_best.pth",
         help="Đường dẫn tới file checkpoint .pth"
     )
     parser.add_argument('--camera_id', type=int, default=0, help="ID Webcam (thường là 0)")

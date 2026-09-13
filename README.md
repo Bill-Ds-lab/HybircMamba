@@ -4,9 +4,11 @@ Project for image classification with hybrid CNN-Mamba models and standard CNN/V
 
 ## 1. Model architecture
 
+The project contains two Mamba-based models and several baseline models from `timm`. All models are used for image classification, with the default input size set to 32 x 32 pixels.
+
 ### HybricMamba
 
-`HybricMamba` is defined in `models/HybricMamba/HybricMamba.py`. It combines convolutional stages with 2D selective-scan Mamba stages:
+`HybricMamba` is implemented in `models/HybricMamba/HybricMamba.py`. It alternates convolutional stages and 2D bidirectional selective-scan Mamba stages:
 
 ```text
 Input image (3 x 32 x 32)
@@ -39,13 +41,34 @@ The Mamba blocks split features into three branches:
 - **Convolution branch:** uses local 3x3 and 5x5 convolutions.
 - **Identity branch:** preserves part of the input representation.
 
-During training, when `use_aux=True`, the model returns three outputs:
+The selective-scan branch is implemented by `SS2DBiScan` in `models/HybricMamba/layers/ssm.py`. The model uses `BiScan2D` and `BiMerge2D` from `models/HybricMamba/ops/scan_transform.py` to scan the feature map in two spatial directions.
+
+When `use_aux=True` and the model is in training mode, it returns three outputs:
 
 ```python
 (main_logits, aux_stage2_logits, aux_stage3_logits)
 ```
 
 `Train.py` computes the main classification loss and adds `0.3 * CrossEntropyLoss` for each auxiliary output. During evaluation (`model.eval()`), the model returns only `main_logits`.
+
+### Super_Mamba
+
+`Super_Mamba` is implemented in `models/mambaTRS/Vmamba_ultils.py`. Its pipeline is:
+
+```text
+Input image (3 x 32 x 32)
+        |
+        v
+ConvNet feature embedding
+        |
+        v
+Repeated PatchMerging2D -> VSSBlock stages
+        |
+        v
+LayerNorm -> Global average pooling -> Linear classifier
+```
+
+Each `VSSBlock` uses the `SS2D` selective-scan implementation from `models/mambaTRS/VSSBlock_ultils.py`. The depth-3 and depth-4 variants are exposed as `SUPER_MAMBA_DEPT_3` and `SUPER_MAMBA_DEPT_4`.
 
 ### Model variants
 
@@ -66,26 +89,40 @@ During training, when `use_aux=True`, the model returns three outputs:
 | `MOBILENETV3_SMALL` | MobileNetV3-Small baseline |
 | `GHOSTNET` | GhostNet baseline |
 
-The exact constructor parameters are defined in `build_Model()` inside `Train.py`. The same parameters must be used when loading a checkpoint for evaluation or benchmarking.
+The model constructors and names are defined in `build_Model()` in `Train.py` and duplicated in `model_metric.py`. The same model configuration and number of classes must be used when loading a checkpoint for evaluation or benchmarking.
 
 ## 2. Project structure
 
 ```text
-Train.py                         Main training and test-evaluation pipeline
-model_metric.py                  Model benchmark: accuracy, FLOPs, latency, memory
-Dataloader/DATASET.py            Dataset scanner and PyTorch Dataset
-models/CNN_Mamba_.../HybricMamba.py
-                                  HybricMamba implementation
-models/vmamba/Vmamba_ultils.py   Super_Mamba implementation
-models/vmamba/VSSBlock_ultils.py  Selective-scan and VSS operations
-data_split_utils.py              Persistent train/validation/test split helper
-Predict_on_Full_dataset.py       Prediction over a complete ImageFolder dataset
-predict.py                       Prediction for selected individual images
-eval.py                          Older standalone evaluation script
-benchmark_outputs/               Saved benchmark CSV files
-Ressult/TFJ/                     Checkpoints, logs and confusion matrices
-kernels/selective_scan/          Optional CUDA selective-scan extension
+Train.py                              Training, validation and test-evaluation pipeline
+model_metric.py                       Accuracy and model benchmark pipeline
+predict.py                            Prediction for selected image files
+RealTimeTest.py                       Webcam-based real-time recognition
+download_dataset.py                   Download datasets through KaggleHub
+mambatsr_dataset_transform.py        Create resized and corrupted dataset variants
+
+Dataloader/loadDataset.py             TrafficSignDataset and dataset scanners
+Dataloader/data_split_utils.py        Persistent train/validation/test split helper
+
+models/HybricMamba/HybricMamba.py     HybricMamba classifier
+models/HybricMamba/layers/            CNN, attention, downsampling and Mamba layers
+models/HybricMamba/ops/               2D bidirectional scan transformations
+
+models/mambaTRS/Vmamba_ultils.py      Super_Mamba classifier
+models/mambaTRS/VSSBlock_ultils.py    SS2D, VSSBlock and selective-scan operations
+models/mambaTRS/ConvNet_ultils.py     Super_Mamba convolutional feature blocks
+
+kernels/selective_scan/               CUDA selective-scan extension and tests
+Ressult/TFJ/                          Checkpoints, logs, splits and confusion matrices
+benchmark_outputs/                    Saved benchmark CSV files
+Sample_belGium/                       Sample Belgium images
+Sample_NEU-DET/                       Sample NEU-DET images
+image/                                Sample images used by predict.py
+requirements.txt                      Python package requirements
+environment.yml                       Conda environment specification
 ```
+
+The top-level `main.py` is currently empty. The executable entry points are `Train.py`, `model_metric.py`, `predict.py`, `RealTimeTest.py`, `download_dataset.py`, and `mambatsr_dataset_transform.py`.
 
 ## 3. Environment requirements
 
