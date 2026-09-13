@@ -166,11 +166,11 @@ def main():
                         class_name = GTSRB_CLASSES.get(class_id, "Unknown")
                         label_text = f"ID [{class_id}]: {class_name}"
                         conf_text = f"Confidence: {confidence_score:.2f}%"
-                        box_color = (0, 255, 0)  # Xanh lá khi nhận diện được
+                        box_color = (0, 255, 0)
                     else:
                         label_text = "Khong tim thay trong tap du lieu"
                         conf_text = f"Confidence: {confidence_score:.2f}% (<{args.conf_threshold:.0f}%)"
-                        box_color = (0, 0, 255)  # Đỏ khi không đủ độ tin cậy
+                        box_color = (0, 0, 255)
 
             last_predict_time = current_time
 
