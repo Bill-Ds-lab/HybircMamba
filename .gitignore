@@ -1,0 +1,17 @@
+.git_old/
+.env
+*.env
+
+*.pth
+*.pt
+*.ckpt
+*.zip
+
+!Ressult/TFJ/LIGHT_HYBRIC_MAMBA/**/*.pth
+!Ressult/TFJ/MEDIUM_HYBRIC_MAMBA/**/*.pth
+!Ressult/TFJ/HEAVY_HYBRIC_MAMBA/**/*.pth
+
+__pycache__/
+*.pyc
+
+**/*_best/

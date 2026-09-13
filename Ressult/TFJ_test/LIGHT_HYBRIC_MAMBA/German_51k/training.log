@@ -1,0 +1,79 @@
+2026-09-13 13:22:49 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-13 13:22:49 [INFO] [SPLIT] Dùng lại split cố định đã lưu: ./splits/German_51k_split_seed2223.json
+2026-09-13 13:22:49 [WARNING] [WARNING] 33695 ảnh trong 'train' đã lưu không còn tồn tại
+2026-09-13 13:22:49 [WARNING] [WARNING] 9072 ảnh trong 'val' đã lưu không còn tồn tại
+2026-09-13 13:22:49 [WARNING] [WARNING] 9072 ảnh trong 'test' đã lưu không còn tồn tại
+2026-09-13 13:25:54 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-13 13:25:54 [INFO] [SPLIT] Dùng lại split cố định đã lưu: ./splits/German_51k_split_seed2223.json
+2026-09-13 13:25:54 [WARNING] [WARNING] 33695 ảnh trong 'train' đã lưu không còn tồn tại
+2026-09-13 13:25:54 [WARNING] [WARNING] 9072 ảnh trong 'val' đã lưu không còn tồn tại
+2026-09-13 13:25:54 [WARNING] [WARNING] 9072 ảnh trong 'test' đã lưu không còn tồn tại
+2026-09-13 13:26:22 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-13 13:26:22 [INFO] [SPLIT] Chưa có file split cố định, đang tạo mới tại: ./splits/German_51k_split_seed2223.json
+2026-09-13 13:26:22 [INFO] Dữ liệu đã chia -> Train: 33695 | Val: 9072 | Test: 9072
+2026-09-13 13:26:22 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-13 13:26:24 [INFO]   Batch 0: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-13 13:26:24 [INFO]   Batch 1: 32 classes (first 5: [0, 2, 3, 4, 6])
+2026-09-13 13:26:24 [INFO]   Batch 2: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-13 13:26:24 [INFO]   Batch 3: 30 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:26:24 [INFO]   Batch 4: 30 classes (first 5: [2, 3, 4, 5, 6])
+2026-09-13 13:26:24 [INFO]  Trộn tốt! Trung bình 29.2 classes/batch
+2026-09-13 13:26:24 [INFO] ============================================================
+2026-09-13 13:26:24 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-13 13:26:24 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/data/German51K/German_51k
+2026-09-13 13:26:24 [INFO] Device: cuda
+2026-09-13 13:26:24 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-13 13:26:24 [INFO] ============================================================
+2026-09-13 13:26:41 [INFO] Epoch 000 | Train Loss: 5.0745 | Train Acc: 0.1641 | Val Loss: 2.3373 | Val Acc: 0.3258
+2026-09-13 13:26:41 [INFO] Saved best model: Val Acc=0.3258 at epoch 0
+2026-09-13 13:26:41 [INFO] Evaluating Best Model on TEST Set...
+2026-09-13 13:26:41 [INFO] 
+[RESUME] Đang nạp checkpoint từ: Ressult/TFJ_test/LIGHT_HYBRIC_MAMBA/German_51k/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-13 13:26:42 [INFO] [TEST RESULT] Test Acc: 0.3296 | F1-Macro: 0.1407 | F1-Weighted: 0.2522
+2026-09-13 13:27:42 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-13 13:27:42 [INFO] [SPLIT] Dùng lại split cố định đã lưu: ./splits/German_51k_split_seed2223.json
+2026-09-13 13:27:42 [INFO] Dữ liệu đã chia -> Train: 33695 | Val: 9072 | Test: 9072
+2026-09-13 13:27:42 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-13 13:27:44 [INFO]   Batch 0: 28 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-13 13:27:44 [INFO]   Batch 1: 31 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:27:44 [INFO]   Batch 2: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:27:44 [INFO]   Batch 3: 28 classes (first 5: [1, 2, 4, 5, 7])
+2026-09-13 13:27:44 [INFO]   Batch 4: 27 classes (first 5: [0, 1, 2, 3, 4])
+2026-09-13 13:27:44 [INFO]  Trộn tốt! Trung bình 28.4 classes/batch
+2026-09-13 13:27:44 [INFO] ============================================================
+2026-09-13 13:27:44 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-13 13:27:44 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/data/German51K/German_51k
+2026-09-13 13:27:44 [INFO] Device: cuda
+2026-09-13 13:27:44 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-13 13:27:44 [INFO] ============================================================
+2026-09-13 13:27:57 [INFO] Epoch 000 | Train Loss: 5.1489 | Train Acc: 0.1465 | Val Loss: 2.5188 | Val Acc: 0.2757
+2026-09-13 13:27:57 [INFO] Saved best model: Val Acc=0.2757 at epoch 0
+2026-09-13 13:27:57 [INFO] Evaluating Best Model on TEST Set...
+2026-09-13 13:27:57 [INFO] 
+[RESUME] Đang nạp checkpoint từ: Ressult/TFJ_test/LIGHT_HYBRIC_MAMBA/German_51k/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-13 13:27:58 [INFO] [TEST RESULT] Test Acc: 0.2765 | F1-Macro: 0.1084 | F1-Weighted: 0.2072
+2026-09-13 13:30:48 [INFO] Dataset: German_51k | Số nhãn (classes): 43 | Tổng số ảnh: 51839
+2026-09-13 13:30:48 [INFO] [SPLIT] Dùng lại split cố định đã lưu: ./splits/German_51k_split_seed2223.json
+2026-09-13 13:30:48 [INFO] Dữ liệu đã chia -> Train: 33695 | Val: 9072 | Test: 9072
+2026-09-13 13:30:48 [INFO] 
+🔍 Kiểm tra phân bố class trong batch:
+2026-09-13 13:30:50 [INFO]   Batch 0: 30 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:30:50 [INFO]   Batch 1: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:30:50 [INFO]   Batch 2: 28 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:30:50 [INFO]   Batch 3: 29 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:30:50 [INFO]   Batch 4: 24 classes (first 5: [1, 2, 3, 4, 5])
+2026-09-13 13:30:50 [INFO]  Trộn tốt! Trung bình 27.8 classes/batch
+2026-09-13 13:30:50 [INFO] ============================================================
+2026-09-13 13:30:50 [INFO] Starting training: LIGHT_HYBRIC_MAMBA
+2026-09-13 13:30:50 [INFO] Dataset: German_51k | Path: /home/biu-linux/DeepLearning_Projects/DoAnNganh/HybricMamba/data/German51K/German_51k
+2026-09-13 13:30:50 [INFO] Device: cuda
+2026-09-13 13:30:50 [INFO] GPU: NVIDIA GeForce RTX 3050 Laptop GPU
+2026-09-13 13:30:50 [INFO] ============================================================
+2026-09-13 13:31:04 [INFO] Epoch 000 | Train Loss: 5.1225 | Train Acc: 0.1551 | Val Loss: 2.4738 | Val Acc: 0.3092
+2026-09-13 13:31:04 [INFO] Saved best model: Val Acc=0.3092 at epoch 0
+2026-09-13 13:31:04 [INFO] Evaluating Best Model on TEST Set...
+2026-09-13 13:31:04 [INFO] 
+[RESUME] Đang nạp checkpoint từ: Ressult/TFJ_test/LIGHT_HYBRIC_MAMBA/German_51k/LIGHT_HYBRIC_MAMBA_best.pth
+2026-09-13 13:31:05 [INFO] [TEST RESULT] Test Acc: 0.3093 | F1-Macro: 0.1148 | F1-Weighted: 0.2243
